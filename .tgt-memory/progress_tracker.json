@@ -1,0 +1,38 @@
+{
+  "project": "claude-workbench",
+  "updated_at": "2026-10-24T18:10:00+08:00",
+  "version": "0.1.1",
+  "structure_hash": "1267b8b9ff9b",
+  "src_files": 70,
+  "milestones": {
+    "M1_对话与会话": "done",
+    "M2_任务队列": "done",
+    "M3_模板流水线": "done",
+    "M4_定时自动化": "done",
+    "M5_用量与成本看板": "done",
+    "M6_自动更新": "pending",
+    "P0_托盘": "done",
+    "P0_预设14家": "done",
+    "P1_回归矩阵": "done"
+  },
+  "current_iteration": {
+    "id": "ITER-20261024-v0.1.2",
+    "theme": "加固与收尾（原子写/便携exe/仓库卫生）",
+    "status": "closed",
+    "result": {
+      "gates": { "typecheck": "0 error", "vitest": "155/155", "build": "zip 263.6MB + portable exe 177.8MB (v0.1.1)", "docs": "synced" },
+      "defects": [{ "id": "D1", "severity": "中危", "desc": "主文件缺失但 .bak 有效时未走恢复", "fix_commits": ["c52ee62"], "retest": "PASS" }],
+      "commits": ["95f7da5", "c52ee62"]
+    },
+    "work_packages": [
+      { "id": "TGT-20261024-01", "owner": "ops", "title": "仓库卫生 + 补 v0.1.1 便携 exe + ship 复核", "status": "done" },
+      { "id": "TGT-20261024-02", "owner": "be", "title": "config 原子写 + 写前备份 + 损坏回退（含 D1 修复）", "status": "done" },
+      { "id": "TGT-20261024-03", "owner": "qa", "title": "独立验证 + 边界用例 + 复验闭环", "status": "done" }
+    ]
+  },
+  "next_iteration_candidates": [
+    { "id": "ITER-v0.2.0", "theme": "M6 自动更新（electron-updater）", "blocker": "需要 GitHub remote（人工决策）" },
+    { "id": "ITER-v0.3.0", "theme": "API 格式互转（OpenAI Responses / Gemini → Anthropic）" }
+  ],
+  "quality_baseline": { "vitest": "155/155", "tsc": "0 error", "build": "pass" }
+}

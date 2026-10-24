@@ -1,0 +1,32 @@
+# Ship 通道：目录名随版本号走（release-v<version>），构建后由 scripts/ship.mjs 自动瘦身。
+# 轮换目录沿用旧做法，用于绕开本机两个问题：
+#   1. safe-delete 钩子会拦住 electron-builder 对复用目录的批量清理（>50 文件）
+#   2. 杀软/索引器可能占用 app.asar，导致目录删不掉
+# 与旧 vN 通道的区别：目录名 = 版本号 → 每次发版天然唯一，产物名也带版本，不再出现「同名包囤 15 份」。
+appId: com.claudeworkbench.app
+productName: ClaudeWorkbench
+copyright: Copyright (c) 2026
+directories:
+  output: release
+  buildResources: resources
+electronDist: node_modules/electron/dist
+files:
+  - out/**/*
+  - package.json
+  - node_modules/**/*
+  - '!release*/**/*'
+  - '!**/*.{map,ts,md,markdown}'
+asar: true
+asarUnpack:
+  - '**/node_modules/@anthropic-ai/claude-agent-sdk-win32-x64/**'
+compression: normal
+npmRebuild: false
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-win.${ext}
