@@ -1,0 +1,62 @@
+{
+  "project": "claude-workbench",
+  "updated_at": "2026-10-25T04:10:00+08:00",
+  "version": "0.2.0",
+  "structure_hash": "1267b8b9ff9b",
+  "src_files": 70,
+  "milestones": {
+    "M1_对话与会话": "done",
+    "M2_任务队列": "done",
+    "M3_模板流水线": "done",
+    "M4_定时自动化": "done",
+    "M5_用量与成本看板": "done",
+    "M6_自动更新": "done",
+    "M7_ClaudeBot_MVP速聊入口": "done",
+    "P0_托盘": "done",
+    "P0_预设14家": "done",
+    "P1_回归矩阵": "done"
+  },
+  "current_iteration": {
+    "id": "ITER-20261025-v0.2.0",
+    "theme": "ClaudeBot MVP：常驻入口（全局热键速聊）+ 多会话并行 + 自动更新",
+    "status": "closed",
+    "result": {
+      "gates": { "typecheck": "0 error", "vitest": "213/213", "build": "pass", "ui": "30/30（dev 版与打包版各一轮）", "asset_integrity": "263.6MB 字节级一致 + zip 结构完整" },
+      "commits": ["05e6824", "77304aa", "3aa3d91"],
+      "release": "https://github.com/zhangchang00700/claude-workbench/releases/tag/v0.2.0",
+      "notes": "be/fe/ops 三 worker 同时被 429 打挂，剩余返工与集成由厂长亲自完成"
+    },
+    "work_packages": [
+      { "id": "TGT-20261025-01", "owner": "be", "title": "速聊主进程 + 全局热键 + IPC 契约 + 多会话并行支撑", "status": "done" },
+      { "id": "TGT-20261025-02", "owner": "fe", "title": "速聊条 UI + 多会话 tab UI + 更新提示 UI", "status": "done" },
+      { "id": "TGT-20261025-03", "owner": "ops", "title": "自动更新基建 + 发布脚本 + v0.2.0 打包", "status": "done" },
+      { "id": "TGT-20261025-04", "owner": "qa", "title": "用户体验验收", "status": "done（厂长亲自执行，dev+打包版双跑）" }
+    ],
+    "api_contract": {
+      "note": "厂长预定义；返工后实际生效的接口共 10 个（原 7 + quickChatResize/onSessionOpen/openUpdateFolder + getQuickChatHotkey/quickChatShow），handoff 增加可选 answer 字段",
+      "quickChatAsk": "(args:{text:string;tier?:ModelTier}) => Promise<{ok:boolean;text?:string;error?:string;ms?:number}>",
+      "quickChatHandoff": "(args:{text:string;tier?:ModelTier;answer?:string}) => Promise<{ok:boolean;appSessionId?:string}>",
+      "quickChatHide": "() => Promise<void>",
+      "quickChatShow": "() => Promise<{ok:boolean}>",
+      "getQuickChatHotkey": "() => Promise<string>",
+      "onQuickChatShown": "(cb:()=>void) => () => void",
+      "checkUpdate": "() => Promise<{hasUpdate:boolean;current:string;latest?:string;notes?:string;assetName?:string;assetSize?:number;error?:string}>",
+      "downloadUpdate": "() => Promise<{ok:boolean;path?:string;error?:string}>",
+      "onUpdateProgress": "(cb:(p:{phase:string;percent?:number;message?:string})=>void) => () => void"
+    }
+  },
+  "next_iteration_candidates": [
+    { "id": "ITER-v0.3.0", "theme": "派活式智能体：M2 执行器升级为完整 claude CLI agent 循环（权限 Broker + resume）" },
+    { "id": "ITER-v0.4.0", "theme": "技能/插件平台（skills 包管理 + 面板插件）" }
+  ],
+  "quality_baseline": {
+    "vitest": "213/213",
+    "tsc": "0 error",
+    "build": "pass",
+    "ux_gate": "真实 GUI 操作流自检（dev 版 + 打包版双跑 30/30）；透明窗口三怪癖见开发日志 2026-10-25"
+  },
+  "history": [
+    { "id": "ITER-20261024-v0.1.2", "result": "closed", "commits": ["95f7da5", "c52ee62"] },
+    { "id": "ITER-20261025-v0.2.0", "result": "closed", "commits": ["05e6824", "77304aa", "3aa3d91"] }
+  ]
+}

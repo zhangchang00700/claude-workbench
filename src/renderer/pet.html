@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClaudeWorkbench Pet</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+        user-select: none;
+        cursor: grab;
+      }
+      #stage {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        -webkit-app-region: drag;
+      }
+      #pet {
+        width: 88%;
+        pointer-events: none;
+      }
+      #close {
+        position: fixed;
+        top: 4px;
+        right: 4px;
+        width: 20px;
+        height: 20px;
+        line-height: 18px;
+        text-align: center;
+        border-radius: 50%;
+        border: 1px solid rgba(47, 111, 122, 0.4);
+        background: rgba(14, 18, 22, 0.8);
+        color: #8b9aa7;
+        font-size: 12px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.15s;
+        -webkit-app-region: no-drag;
+        padding: 0;
+      }
+      body:hover #close {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <button id="close" title="收起宠物">×</button>
+    <script type="module" src="./pet.ts"></script>
+  </body>
+</html>

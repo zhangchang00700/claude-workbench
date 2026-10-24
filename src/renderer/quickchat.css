@@ -1,0 +1,36 @@
+/* 速聊窗专用：盖掉主窗口那套不透明底色
+   —— 主窗口 body 是 #0e1216 实色，速聊窗必须透明，否则无边框窗会露出黑底方块。
+   用 .qc 提权，避免依赖 CSS 加载顺序。 */
+
+html.qc,
+body.qc {
+  background-color: transparent;
+}
+
+/* 无边框窗下顶栏可拖动整窗；交互元素必须显式取消拖动，否则点不动 */
+.qc-drag {
+  -webkit-app-region: drag;
+}
+
+textarea,
+button {
+  -webkit-app-region: no-drag;
+}
+
+/* 回答区超长时的滚动条：默认那条 6px 灰线几乎看不见，答案被裁掉时用户会以为内容丢了 */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #24313b;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #31424e;
+  background-clip: content-box;
+}

@@ -1,0 +1,26 @@
+appId: com.claudeworkbench.app
+productName: ClaudeWorkbench
+copyright: Copyright (c) 2026
+directories:
+  output: release
+  buildResources: resources
+# 显式文件清单：默认模式会把 release/ 等历史输出目录也打进 asar（二次构建时 asar 膨胀 ~565MB）。
+# node_modules 由 electron-builder 按 package.json 依赖树自动剪枝（electron 本体不打包）。
+files:
+  - out/**/*
+  - package.json
+  - node_modules/**/*
+  - '!release/**/*'
+  - '!release-fresh/**/*'
+  - '!**/*.{map,ts,md,markdown}'
+asar: true
+asarUnpack:
+  - '**/node_modules/@anthropic-ai/claude-agent-sdk-win32-x64/**'
+compression: normal
+npmRebuild: false
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-portable.${ext}
