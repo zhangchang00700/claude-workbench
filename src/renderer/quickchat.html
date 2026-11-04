@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN" class="qc">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClaudeWorkbench 速聊</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+      }
+      body {
+        color: #d8dfe6;
+        font-family:
+          'Segoe UI',
+          'PingFang SC',
+          'Microsoft YaHei',
+          system-ui,
+          sans-serif;
+      }
+      #root {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./quickchat.tsx"></script>
+  </body>
+</html>

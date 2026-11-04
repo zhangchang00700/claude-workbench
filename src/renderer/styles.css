@@ -1,0 +1,259 @@
+@import 'tailwindcss';
+@source './**/*.{tsx,ts}';
+
+/* ============================================================
+   ClaudeWorkbench 面牌主题（HMI 方向）
+   - 色彩即状态：正常=青、告警=amber、故障=red；不做装饰性用色
+   - 机器产物一律等宽：模型名/端点/session id/状态行/代码
+   ============================================================ */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #0e1216;
+  color: #d8dfe6;
+  font-family:
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    system-ui,
+    sans-serif;
+}
+
+/* 机器产物读数：等宽（Cascadia Mono 为 Win11 自带，回退 Consolas） */
+.mono {
+  font-family:
+    'Cascadia Mono',
+    Consolas,
+    'SFMono-Regular',
+    Menlo,
+    monospace;
+  font-variant-ligatures: none;
+}
+
+/* ---------- 对话流 ---------- */
+
+/* 流式光标：仅取代「…」占位，流结束即消失 */
+.stream-cursor::after {
+  content: '▊';
+  color: #53d3e0;
+  animation: blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stream-cursor::after {
+    animation: none;
+  }
+}
+
+/* ---------- Markdown 正文（助手输出） ---------- */
+
+.md {
+  font-size: 14px;
+  line-height: 1.75;
+  word-break: break-word;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md p {
+  margin: 0.65em 0;
+}
+
+.md h1,
+.md h2,
+.md h3,
+.md h4 {
+  font-weight: 600;
+  margin: 1.3em 0 0.5em;
+  line-height: 1.4;
+}
+
+.md h1 {
+  font-size: 1.15em;
+}
+
+.md h2 {
+  font-size: 1.08em;
+}
+
+.md h3,
+.md h4 {
+  font-size: 1em;
+}
+
+.md ul,
+.md ol {
+  margin: 0.65em 0;
+  padding-left: 1.5em;
+}
+
+.md li {
+  margin: 0.25em 0;
+}
+
+.md a {
+  color: #53d3e0;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(83, 211, 224, 0.35);
+}
+
+.md code {
+  font-family:
+    'Cascadia Mono',
+    Consolas,
+    'SFMono-Regular',
+    Menlo,
+    monospace;
+  font-size: 0.9em;
+  background: #1a2129;
+  border: 1px solid #232c35;
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+}
+
+.md pre {
+  position: relative;
+  margin: 0.75em 0;
+  padding: 0.85em 1em;
+  background: #12181e;
+  border: 1px solid #232c35;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.md pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.md blockquote {
+  margin: 0.75em 0;
+  padding: 0.1em 0 0.1em 0.9em;
+  border-left: 2px solid #2f6f7a;
+  color: #9fb3bf;
+}
+
+.md table {
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  font-size: 13px;
+}
+
+.md th,
+.md td {
+  border: 1px solid #232c35;
+  padding: 0.35em 0.7em;
+}
+
+.md th {
+  background: #1a2129;
+}
+
+.md hr {
+  border: none;
+  border-top: 1px solid #232c35;
+  margin: 1.1em 0;
+}
+
+/* 代码块左上角语言名（由 MarkdownBlock 写入 data-lang） */
+.md pre[data-lang]::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.1em 0.55em;
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: #6d8294;
+  background: #1a2129;
+  border-left: 1px solid #232c35;
+  border-bottom: 1px solid #232c35;
+  border-bottom-left-radius: 6px;
+}
+
+/* ---------- rehype-highlight 主题（贴色板的低饱和方案） ---------- */
+
+.hljs {
+  color: #b9c6d2;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal {
+  color: #6fc7d4;
+}
+
+.hljs-string,
+.hljs-attr {
+  color: #9ccc8f;
+}
+
+.hljs-title,
+.hljs-title.function_,
+.hljs-section {
+  color: #d9b06c;
+}
+
+.hljs-number,
+.hljs-symbol {
+  color: #d9a0a0;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #5d707e;
+  font-style: italic;
+}
+
+.hljs-built_in,
+.hljs-type {
+  color: #8fb8d8;
+}
+
+.hljs-meta,
+.hljs-tag {
+  color: #7d8f9e;
+}
+
+.hljs-name {
+  color: #6fc7d4;
+}
+
+.hljs-attr {
+  color: #9ccc8f;
+}
+
+.hljs-variable,
+.hljs-template-variable {
+  color: #b9c6d2;
+}
+
+.hljs-deletion {
+  color: #d98a8a;
+}
+
+.hljs-addition {
+  color: #93c99a;
+}

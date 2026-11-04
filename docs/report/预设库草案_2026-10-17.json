@@ -1,0 +1,182 @@
+[
+  {
+    "id": "modelscope",
+    "name": "魔搭 ModelScope",
+    "baseUrl": "https://api-inference.modelscope.cn",
+    "protocol": "anthropic",
+    "models": {
+      "opus": "deepseek-ai/DeepSeek-V4-Pro",
+      "sonnet": "ZhipuAI/GLM-5.2",
+      "haiku": "Qwen/Qwen3.5-35B-A3B"
+    },
+    "defaultModel": "Qwen/Qwen3.5-35B-A3B",
+    "priority": 9,
+    "docUrl": "https://www.modelscope.cn/docs/model-service/API-Inference/intro",
+    "notes": "免费(2000次/日)，Anthropic端点beta，无模型列表API；需绑定阿里云账号并实名"
+  },
+  {
+    "id": "minimax",
+    "name": "MiniMax",
+    "baseUrl": "https://api.minimaxi.com/anthropic",
+    "protocol": "anthropic",
+    "models": {
+      "opus": "MiniMax-M3",
+      "sonnet": "MiniMax-M2.7",
+      "haiku": "MiniMax-M2.7-highspeed"
+    },
+    "defaultModel": "MiniMax-M3",
+    "priority": 8,
+    "docUrl": "https://platform.minimax.cn/docs/guides/quickstart-preparation",
+    "notes": "国内站；Anthropic端点官方推荐；M2.5/M2.7将于2026-11-18退役，建议关注M3.1-Flash-Preview；Key分按量与订阅两种不通用"
+  },
+  {
+    "id": "tokenhub",
+    "name": "TokenHub（腾讯云）",
+    "baseUrl": "https://tokenhub.tencentcloudmaas.com",
+    "protocol": "anthropic",
+    "models": {
+      "opus": "hy4-preview",
+      "sonnet": "glm-5.3",
+      "haiku": "deepseek/deepseek-v4-flash"
+    },
+    "defaultModel": "deepseek/deepseek-v4-flash",
+    "priority": 8,
+    "docUrl": "https://www.tencentcloud.com/zh/document/product/1300/80632",
+    "notes": "国内广州站；OpenAI/Anthropic共用Base URL按路径区分；GET /v1/models可自动获取；模型需控制台开通(402)；与tokenhub.store/aitok.cc等同名产品无关"
+  },
+  {
+    "id": "siliconflow",
+    "name": "硅基流动 SiliconFlow",
+    "baseUrl": "https://api.siliconflow.cn/v1",
+    "protocol": "openai",
+    "models": {
+      "opus": "deepseek-ai/DeepSeek-V4-Pro",
+      "sonnet": "zai-org/GLM-5.1",
+      "haiku": "deepseek-ai/DeepSeek-V4-Flash"
+    },
+    "defaultModel": "deepseek-ai/DeepSeek-V4-Flash",
+    "priority": 8,
+    "docUrl": "https://docs.siliconflow.cn/docs/api/models-get",
+    "notes": "国内站；GET /models可自动获取；注册赠14元；无Anthropic端点需协议转换；模型ID带org/前缀"
+  },
+  {
+    "id": "aihubmix",
+    "name": "AiHubMix",
+    "baseUrl": "https://aihubmix.com",
+    "protocol": "anthropic",
+    "models": {
+      "opus": "claude-opus-5-5",
+      "sonnet": "claude-haiku-5-5",
+      "haiku": "deepseek-v4-flash-0731"
+    },
+    "defaultModel": "claude-haiku-5-5",
+    "priority": 7,
+    "docUrl": "https://docs.aihubmix.com/cn/api/Claude-Native",
+    "notes": "美国主体(AiHubMix LLC)，Azure渠道带内容审核；GET /v1/models可自动获取；27+免费模型(*-free)；更新日志未见claude-sonnet-5-5，sonnet档暂用haiku-5-5"
+  },
+  {
+    "id": "bailian",
+    "name": "阿里云百炼",
+    "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "protocol": "openai",
+    "models": {
+      "opus": "qwen3.8-max",
+      "sonnet": "qwen3.7-plus",
+      "haiku": "qwen3.8-flash"
+    },
+    "defaultModel": "qwen3.7-plus",
+    "priority": 7,
+    "docUrl": "https://help.aliyun.com/zh/model-studio/text-generation-model",
+    "notes": "无Anthropic端点需协议转换；GET /api/v1/models(北京需WorkspaceId)；新人每模型约100万token免费额度90天；同平台可调deepseek-v4-pro/glm-5.2等三方模型"
+  },
+  {
+    "id": "qiniu",
+    "name": "七牛云 AI 推理",
+    "baseUrl": "https://api.qnaigc.com",
+    "protocol": "anthropic",
+    "models": {
+      "opus": "qiniu/qwen3-max",
+      "sonnet": "qiniu/z-ai/glm-5",
+      "haiku": "qiniu/deepseek-v3.2-251201"
+    },
+    "defaultModel": "qiniu/deepseek-v3.2-251201",
+    "priority": 6,
+    "docUrl": "https://developer.qiniu.com/aitokenapi/13379/real-time-ai-interface-api",
+    "notes": "OpenAI base为https://api.qnaigc.com/v1，Anthropic为/v1/messages；/v1/models可自动获取；新用户赠300万token；需实名；模型ID带qiniu/前缀"
+  },
+  {
+    "id": "openrouter",
+    "name": "OpenRouter",
+    "baseUrl": "https://openrouter.ai/api/v1",
+    "protocol": "openai",
+    "models": {
+      "opus": "anthropic/claude-opus-5.5",
+      "sonnet": "anthropic/claude-sonnet-5.5",
+      "haiku": "anthropic/claude-haiku-5.5"
+    },
+    "defaultModel": "anthropic/claude-sonnet-5.5",
+    "priority": 5,
+    "docUrl": "https://openrouter.ai/docs/api_reference/authentication",
+    "notes": "美国服务国内直连未实测；无Anthropic原生端点需协议转换；GET /api/v1/models可自动获取；免费档无需信用卡"
+  },
+  {
+    "id": "hunyuan",
+    "name": "腾讯混元",
+    "baseUrl": "https://api.hunyuan.cloud.tencent.com/v1",
+    "protocol": "openai",
+    "models": {
+      "opus": "hunyuan-turbos-latest",
+      "sonnet": "hunyuan-t1-latest",
+      "haiku": "hunyuan-lite"
+    },
+    "defaultModel": "hunyuan-turbos-latest",
+    "priority": 5,
+    "docUrl": "https://cloud.tencent.cn/document/product/269/111007",
+    "notes": "官方公告能力逐步迁移至TokenHub，不再新增模型；无Anthropic端点和模型列表API；lite免费；默认5并发"
+  },
+  {
+    "id": "xfyun-spark",
+    "name": "讯飞星火",
+    "baseUrl": "https://spark-api-open.xf-yun.com/v1",
+    "protocol": "openai",
+    "models": {
+      "opus": "4.0Ultra",
+      "sonnet": "generalv3.5",
+      "haiku": "lite"
+    },
+    "defaultModel": "generalv3.5",
+    "priority": 4,
+    "docUrl": "https://www.xfyun.cn/doc/spark/HTTP%E8%B0%83%E7%94%A8%E6%96%87%E6%A1%A3.html",
+    "notes": "无Anthropic端点和模型列表API；lite免费但能力弱；模型命名混乱接入前需控制台核对；Max套餐2026-03-10下线"
+  },
+  {
+    "id": "lingyiwanwu",
+    "name": "零一万物",
+    "baseUrl": "https://api.lingyiwanwu.com/v1",
+    "protocol": "openai",
+    "models": {
+      "opus": "yi-lightning",
+      "sonnet": "yi-lightning",
+      "haiku": "yi-vision-v2"
+    },
+    "defaultModel": "yi-lightning",
+    "priority": 4,
+    "docUrl": "https://platform.lingyiwanwu.com/docs",
+    "notes": "在线可调模型少(主力yi-lightning+视觉yi-vision-v2)，三档只能复用；无Anthropic端点和模型列表API；免费额度政策未找到"
+  },
+  {
+    "id": "nuwaapi",
+    "name": "NuwaAPI",
+    "baseUrl": "https://api.nuwaapi.com/v1",
+    "protocol": "openai",
+    "models": {
+      "opus": "claude-3-opus-20240229",
+      "sonnet": "claude-3-5-sonnet-20241022",
+      "haiku": "deepseek-chat"
+    },
+    "defaultModel": "deepseek-chat",
+    "priority": 3,
+    "docUrl": "https://nuwaapi.apifox.cn/doc-5985959",
+    "notes": "账号池反代服务非官方直供，合规与稳定性风险高；文档模型版本陈旧(claude-3时代)；无Anthropic端点和模型列表API；仅作备选建议默认关闭"
+  }
+]

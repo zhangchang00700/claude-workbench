@@ -1,0 +1,50 @@
+{
+  "project": "claude-workbench",
+  "updated_at": "2026-11-04T16:00:00+08:00",
+  "version": "0.2.1",
+  "structure_hash": "1267b8b9ff9b",
+  "src_files": 70,
+  "milestones": {
+    "M1_对话与会话": "done",
+    "M2_任务队列": "done",
+    "M3_模板流水线": "done",
+    "M4_定时自动化": "done",
+    "M5_用量与成本看板": "done",
+    "M6_自动更新": "done",
+    "M7_ClaudeBot_MVP速聊入口": "done",
+    "P0_托盘": "done",
+    "P0_预设14家": "done",
+    "P1_回归矩阵": "done"
+  },
+  "current_iteration": {
+    "id": "ITER-20261104-v0.2.1",
+    "theme": "加固与收尾：并发竞态 + 速聊预热 + 一键安装 + 旧产物清理",
+    "status": "in_progress",
+    "work_packages": [
+      { "id": "TGT-20261104-01", "owner": "be", "title": "并发竞态修复 + 速聊预热 + 一键安装主进程", "status": "done" },
+      { "id": "TGT-20261104-02", "owner": "fe", "title": "一键安装 UI（确认/退出态/超时兜底）", "status": "done" },
+      { "id": "TGT-20261104-03", "owner": "ops", "title": "旧产物清理 1355MB + v0.2.1 打包准备", "status": "done" },
+      { "id": "TGT-20261104-04", "owner": "qa", "title": "独立复验 + 正确率统计", "status": "done（PASS，99.29%）" }
+    ],
+    "result": {
+      "gates": { "typecheck": "0 error", "vitest": "236/236", "build": "pass", "ui": "update 15/15 + quickchat 30/30", "accuracy": "99.29%（279/281 严格口径）" },
+      "commits": ["3cad69d", "ebd0a36"],
+      "notes": "qa 补 16 条边界用例；P3 文案修复（assetPatternHint 转义符外漏）与临时文件清理由厂长收尾"
+    },
+    "api_contract_added": "updateInstall(): Promise<{ok:boolean;error?:string}>"
+  },
+  "next_iteration_candidates": [
+    { "id": "ITER-v0.3.0", "theme": "派活式智能体：M2 执行器升级为完整 claude CLI agent 循环（权限 Broker + resume）" },
+    { "id": "ITER-v0.4.0", "theme": "技能/插件平台（skills 包管理 + 面板插件）" }
+  ],
+  "quality_baseline": {
+    "vitest": "213/213",
+    "tsc": "0 error",
+    "build": "pass",
+    "ux_gate": "真实 GUI 操作流自检（dev 版 + 打包版双跑 30/30）；透明窗口三怪癖见开发日志 2026-10-25"
+  },
+  "history": [
+    { "id": "ITER-20261024-v0.1.2", "result": "closed", "commits": ["95f7da5", "c52ee62"] },
+    { "id": "ITER-20261025-v0.2.0", "result": "closed", "commits": ["05e6824", "77304aa", "3aa3d91"] }
+  ]
+}

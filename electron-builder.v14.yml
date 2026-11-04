@@ -1,0 +1,41 @@
+# Build config (channel 9): outputs to release-v14/.
+# Rotating output dirs is the workaround for two host-environment issues:
+#   1. safe-delete hook blocks electron-builder's bulk cleanup of a reused dir (>50 files)
+#   2. AV/indexer may hold app.asar open, making the dir undeletable
+# Build to a fresh dir instead of fighting the lock.
+appId: com.claudeworkbench.app
+productName: ClaudeWorkbench
+copyright: Copyright (c) 2026
+directories:
+  output: release-v14
+  buildResources: resources
+electronDist: node_modules/electron/dist
+files:
+  - out/**/*
+  - package.json
+  - node_modules/**/*
+  - '!release/**/*'
+  - '!release-fresh/**/*'
+  - '!release-fresh2/**/*'
+  - '!release-v3/**/*'
+  - '!release-v4/**/*'
+  - '!release-v5/**/*'
+  - '!release-v6/**/*'
+  - '!release-v7/**/*'
+  - '!release-v8/**/*'
+  - '!release-v14/**/*'
+  - '!**/*.{map,ts,md,markdown}'
+asar: true
+asarUnpack:
+  - '**/node_modules/@anthropic-ai/claude-agent-sdk-win32-x64/**'
+compression: normal
+npmRebuild: false
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-${os}.${ext}
