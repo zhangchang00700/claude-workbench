@@ -33,3 +33,4 @@
 - **version bump 要紧挨 commit**：`npm version patch --no-git-tag-version` 若放在 `git commit` 之后执行，版本号会长期只存在于工作区，本地 git 历史与已发布 tag 不一致（v0.2.1 踩过，补提交后修复）。
 - **API 快照推送要挂 parent**：publish-via-api.mjs 原先每次 `POST /git/commits` 不带 parents + force PATCH ref，结果是每次一条孤立提交、message 还写死「v0.1.1 初始发布」，公开仓库历史永远停在第一天。现按 package.json 版本动态生成 message、挂 parent、tree 相同则 `NO_CHANGES` 幂等返回。
 - **公开仓库截图要先审内容**：主窗口截图常含内部调试对话、私人路径、自检桩文案，不能直接入库；只放干净的 UI 特写，且用 ASCII 文件名（中文名在 README 链接里需 URL 编码易错）。
+- **冒烟三条通道，真实通道不必向用户索要 Key**：`smoke` 的凭证由 smoke.ts 的 `readHostClaudeEnv()` 读本机 `~/.claude/settings.json`，按 `ANTHROPIC_BASE_URL` 主机名匹配内置供应商后回填；`smoke:mock` / `smoke:failover` 零配额。2026-11-13 真实通道实跑还顺带验证了厂商故障转移（DeepSeek 配额耗尽 → Kimi 429 → Agnes 500/429 → Kimi 200），这类证据离线 mock 给不了。

@@ -34,12 +34,13 @@
         "vitest": "236/236",
         "smoke_mock": "MOCK_SMOKE_PASS 9.3s ok=true（打包版 v0.2.1 全链路）",
         "smoke_failover": "MOCK_SMOKE_PASS 2.6s mockfail→mockok quota_exhausted ×2",
-        "publish": "132 文件 EXIT=0；幂等复跑 NO_CHANGES；远端 parents=1",
-        "deterministic_checks": "12/12（100%）"
+        "smoke_real": "SMOKE_TEST_PASS 13.5s ok=true（真实上游 DeepSeek quota→Kimi 429→Agnes 500/429→Kimi 200，故障转移实测）",
+        "publish": "132→136 文件 EXIT=0；幂等复跑 NO_CHANGES；远端 parents=1",
+        "deterministic_checks": "13/13（100%，含单测 236 条则 249/249）"
       },
-      "commits": ["aff12d4", "51152aa"],
-      "remote_head": "890f4a2f（chore(release): ClaudeWorkbench v0.2.1 快照同步）",
-      "coverage_gap": "真实供应商 smoke 未跑（需用户 API 配额与密钥，未擅自使用）",
+      "commits": ["aff12d4", "51152aa", "95bb51a"],
+      "remote_head": "9defea2855（chore(release): ClaudeWorkbench v0.2.1 快照同步）",
+      "coverage_gap": "无：离线 mock / 故障转移演练 / 真实上游三条冒烟通道全部实跑通过",
       "notes": "根因同源：ship 通道升级到 release-v<version>/ 后，冒烟脚本与发布脚本未跟着改"
     }
   },
