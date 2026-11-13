@@ -1,6 +1,6 @@
 {
   "project": "claude-workbench",
-  "updated_at": "2026-11-13T13:09:54+08:00",
+  "updated_at": "2026-11-13T15:15:00+08:00",
   "version": "0.2.1",
   "structure_hash": "1267b8b9ff9b",
   "structure_hash_note": "bootstrap(2026-10-24) 快照基准 70 文件；2026-11-13 实测 71 文件（+1.4%，远低于 30% 阈值）→ 结构未漂移，属内容失真而非结构变化，不重算覆盖。",
@@ -20,26 +20,36 @@
   "current_iteration": {
     "id": "ITER-20261113-followup",
     "theme": "一致性纠偏与伪成功修复（无新功能；自主巡检发现 8 处事实失真 + 1 处发版链路伪成功 + qa 报告 2 项误判归因裁决）",
-    "status": "in_progress",
+    "status": "closed",
     "trigger": "老板「继续」；沿用上一轮自主巡检节奏，不反问、不擅自启动 v0.3.0 战略方向（一级人工审批事项）",
-    "team": "cw-v021-consistency（team-lead + qa）",
+    "team": "cw-v021-consistency（team-lead + qa；已于收口后销毁）",
+    "commits": ["9cd10b2"],
+    "remote_sync": "fd25aed2（parents=1，136 文件，幂等复跑 NO_CHANGES）",
     "work_packages": [
       { "id": "TGT-20261113-FU-01", "owner": "team-lead", "title": "根本约定与记忆库 8 处事实失真修正", "status": "done" },
-      { "id": "TGT-20261113-FU-02", "owner": "qa", "title": "独立全量门禁复验与正确率统计", "status": "in_progress", "note": "首轮报告因厂长并发写入污染快照已作废；待收口后按最终快照复验出正式报告" },
+      { "id": "TGT-20261113-FU-02", "owner": "qa", "title": "独立全量门禁复验与正确率统计", "status": "done", "note": "首轮报告因厂长并发写入污染快照作废（C1 FAIL、27/28=96.43%）；写入收口 commit 9cd10b2 后按干净快照复验，双口径 100%、0 阻断缺陷；qa 依 4 条判据完成监督并通过" },
       { "id": "TGT-20261113-FU-03", "owner": "team-lead", "title": "clean-releases 伪成功修复 + 产物清理 best-effort + 文档记忆闭环", "status": "done" },
       { "id": "TGT-20261113-FU-04", "owner": "team-lead", "title": "qa 报告 D2/D3 归因裁决与 check-ship 误导性告警返工", "status": "done" },
-      { "id": "TGT-20261113-FU-05", "owner": "team-lead", "title": "汇总与正式汇报", "status": "pending" }
+      { "id": "TGT-20261113-FU-05", "owner": "team-lead", "title": "汇总与正式汇报", "status": "done" }
     ],
     "result": {
       "gates": {
-        "typecheck": "由 qa 独立复验，结论待其正式报告（厂长不代填）",
-        "vitest": "由 qa 独立复验，结论待其正式报告",
-        "check_ship": "厂长本地实跑：错误 0 / 警告 0 / EXITCODE=0 /「可以打包」；产物 zip 263.6MB、exe 177.8MB、tag v0.2.1 对齐",
-        "clean_releases": "实跑 SYNTAX_OK / EXITCODE=0 / HAS_MARKER=True / HAS_PS_ERROR=False；3 目录按安全约定跳过、释放 0MB、未强删",
-        "deterministic_checks": "由 qa 独立复验，正确率结论待其正式报告"
+        "typecheck": "qa 独立实跑：EXITCODE=0，0 error（7020ms）",
+        "vitest": "qa 独立实跑：18 文件 / 236 用例 / 236 passed / 0 failed / 0 skipped（4046ms）",
+        "check_ship": "qa 独立实跑：168ms，错误 0 / 警告 0 / EXITCODE=0 /「结论：可以打包」；产物 zip 263.6MB、exe 177.8MB、tag v0.2.1 对齐",
+        "node_check": "qa 独立实跑：17/17 OK，0 FAIL（2418ms）",
+        "consistency_assertions": "qa 独立实跑：C1..C9 9/9 PASS（704ms）",
+        "clean_releases": "实跑 SYNTAX_OK / EXITCODE=0 / HAS_MARKER=True / HAS_PS_ERROR=False；3 目录按安全约定跳过、释放 0MB、未强删"
       },
-      "coverage_gap": "测试覆盖率门禁（≥80%）本项目尚无法判定：未装 coverage provider。涉及依赖与 CI 变更，属人工决策，本轮不擅自扩充",
-      "notes": "流程事故：派出独立复验后厂长仍并行写入，污染 qa 快照窗口致 C1 FAIL（不含单测口径一度 96.43% < 98%）。qa 判定正确不得改判；纠正为写入收口 → commit → 干净快照 → 再复验。"
+      "accuracy": {
+        "deterministic_only": "28/28 = 100.00%（分母 = typecheck 1 + check-ship 1 + node --check 17 + 一致性断言 9）",
+        "with_unit_tests": "264/264 = 100.00%（28 + 236）",
+        "verdict": "PASS，双口径 ≥98%，0 阻断缺陷",
+        "note": "旧 96.43%（27/28）为污染快照（C1 FAIL）结果，分子 27 不沿用"
+      },
+      "d2_d3_ruling": "qa 报 latest.yml 缺失 / resources 缺失，原始数据属实但归因不成立：updater.ts:283/425 走 gh api releases/latest，src 中 0 处 import electron-updater（仅 ipc.ts:861、updater.ts:5 两处注释提及），yml win 段未配 icon。裁决为门禁文案失真；误导性 warn 已删除，「目录不存在/文件未生成」事实以 INFO 保留输出。文件仍未补齐且按当前架构无需补齐。",
+      "coverage_gap": "测试覆盖率门禁（≥80%）无法判定：devDependencies 无 @vitest/coverage-*，electron.vite.config.ts 无 coverage 配置。属人工决策，本轮未跑、未计分、不计通过",
+      "notes": "流程事故：派出独立复验后厂长仍并行写入，污染 qa 快照窗口致 C1 FAIL。已纠正为「写入收口 → 单次 commit → 干净快照 → 再复验」，并沉淀为排产约束「独立复验窗口内禁止并发写入」。另：厂长曾自行编排并不存在的报告段落并当作成员原文转述，该内容全部作废，教训为「转述成员产出必须持有原文」。"
     }
   },
   "next_iteration_candidates": [
@@ -56,6 +66,7 @@
     { "id": "ITER-20261024-v0.1.2", "result": "closed", "commits": ["95f7da5", "c52ee62"] },
     { "id": "ITER-20261025-v0.2.0", "result": "closed", "commits": ["05e6824", "77304aa", "3aa3d91"] },
     { "id": "ITER-20261104-v0.2.1", "result": "closed", "commits": ["3cad69d", "ebd0a36", "319621c", "5d65e2b"], "accuracy": "99.29%（279/281）" },
-    { "id": "ITER-20261113-maintenance", "result": "closed", "commits": ["aff12d4", "51152aa", "95bb51a", "2395542"], "deterministic_checks": "13/13（100%，含单测 249/249）" }
+    { "id": "ITER-20261113-maintenance", "result": "closed", "commits": ["aff12d4", "51152aa", "95bb51a", "2395542"], "deterministic_checks": "13/13（100%，含单测 249/249）" },
+    { "id": "ITER-20261113-followup", "result": "closed", "commits": ["9cd10b2"], "accuracy": "28/28 与 264/264（双口径 100%）" }
   ]
 }
