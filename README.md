@@ -8,6 +8,18 @@ Windows x64 便携版，解压即用（无需安装 Node 或任何运行时）�
 
 到 [Releases](https://github.com/zhangchang00700/claude-workbench/releases) 下载最新 `ClaudeWorkbench-<版本>-win.zip`（解压即用）或 `...-win.exe`（便携单文件）。
 
+## 界面预览
+
+**全局热键速聊条**：唤起即聚焦，Enter 发送，Esc / 失焦即收起。
+
+| 空态 | 回答态 |
+|---|---|
+| ![速聊条空态](docs/screenshots/quickchat-empty.png) | ![速聊条回答](docs/screenshots/quickchat-answer.png) |
+
+**内置更新与一键安装**：检查 → 下载 → 覆盖安装并自动重启。
+
+![一键安装](docs/screenshots/update-install.png)
+
 ## 功能（v0.2.1）
 
 ### 对话与会话

@@ -29,3 +29,7 @@
 - 打包版本号必须随构建递增（ship 通道已固化）；产物名含版本，杜绝同名包囤积。
 - clean-releases 按 semver 排序保留最新 N 个；legacy 命名（release-v14 无点号）视为遗留。
 - GUI 自检断言注意 CSS uppercase（比较用小写）；期望值不能出现在 prompt 里（假阳性）。
+- **通道升级后必须连坐检查周边脚本**（2026-11-13）：ship 改产物到 `release-v<version>/`、clean-releases 又删掉 legacy `release/` 后，smoke-test.ps1 / smoke-mock.ps1 仍只找 `release/*portable*.exe` → 冒烟硬门禁连续两次发版实际跑不起来（exit 10）。修法是集中的 `scripts/find-smoke-exe.ps1` 按 semver 自动发现，别在多个脚本里各写一份路径。
+- **version bump 要紧挨 commit**：`npm version patch --no-git-tag-version` 若放在 `git commit` 之后执行，版本号会长期只存在于工作区，本地 git 历史与已发布 tag 不一致（v0.2.1 踩过，补提交后修复）。
+- **API 快照推送要挂 parent**：publish-via-api.mjs 原先每次 `POST /git/commits` 不带 parents + force PATCH ref，结果是每次一条孤立提交、message 还写死「v0.1.1 初始发布」，公开仓库历史永远停在第一天。现按 package.json 版本动态生成 message、挂 parent、tree 相同则 `NO_CHANGES` 幂等返回。
+- **公开仓库截图要先审内容**：主窗口截图常含内部调试对话、私人路径、自检桩文案，不能直接入库；只放干净的 UI 特写，且用 ASCII 文件名（中文名在 README 链接里需 URL 编码易错）。

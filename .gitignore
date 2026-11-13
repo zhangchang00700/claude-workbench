@@ -5,4 +5,8 @@ out/
 .vite/
 dist/
 /release*/
-docs/screenshots/
+# 截图仅放行三张干净的 UI 特写作 README 配图；其余（含内部调试对话）不入库
+docs/screenshots/*
+!docs/screenshots/quickchat-empty.png
+!docs/screenshots/quickchat-answer.png
+!docs/screenshots/update-install.png

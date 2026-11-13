@@ -1,6 +1,6 @@
 {
   "project": "claude-workbench",
-  "updated_at": "2026-11-04T16:00:00+08:00",
+  "updated_at": "2026-11-13T12:15:00+08:00",
   "version": "0.2.1",
   "structure_hash": "1267b8b9ff9b",
   "src_files": 70,
@@ -17,34 +17,45 @@
     "P1_回归矩阵": "done"
   },
   "current_iteration": {
-    "id": "ITER-20261104-v0.2.1",
-    "theme": "加固与收尾：并发竞态 + 速聊预热 + 一键安装 + 旧产物清理",
-    "status": "in_progress",
+    "id": "ITER-20261113-maintenance",
+    "theme": "公开仓库一致性与发版门禁补漏（无新功能，自主巡检发现 5 处失真）",
+    "status": "closed",
+    "trigger": "老板「没活找活干，你看着办」；轻量收尾自行执行，未派 worker（规避 429 与并行开销）",
     "work_packages": [
-      { "id": "TGT-20261104-01", "owner": "be", "title": "并发竞态修复 + 速聊预热 + 一键安装主进程", "status": "done" },
-      { "id": "TGT-20261104-02", "owner": "fe", "title": "一键安装 UI（确认/退出态/超时兜底）", "status": "done" },
-      { "id": "TGT-20261104-03", "owner": "ops", "title": "旧产物清理 1355MB + v0.2.1 打包准备", "status": "done" },
-      { "id": "TGT-20261104-04", "owner": "qa", "title": "独立复验 + 正确率统计", "status": "done（PASS，99.29%）" }
+      { "id": "TGT-20261113-01", "owner": "team-lead", "title": "README 重写到 v0.2.1 + AGENTS.md 过时项修正（含半成品收口）", "status": "done" },
+      { "id": "TGT-20261113-02", "owner": "team-lead", "title": "补提交 package.json 0.2.1 版本号（bump 原发生在 commit 之后）", "status": "done" },
+      { "id": "TGT-20261113-03", "owner": "team-lead", "title": "publish-via-api.mjs 动态 message + parent 连续历史 + NO_CHANGES 幂等", "status": "done" },
+      { "id": "TGT-20261113-04", "owner": "team-lead", "title": "冒烟脚本死路径修复（find-smoke-exe.ps1）+ 补跑发版硬门禁", "status": "done" },
+      { "id": "TGT-20261113-05", "owner": "team-lead", "title": "README 界面预览（3 张干净 UI 截图入库，含内部对话的不入库）", "status": "done" }
     ],
     "result": {
-      "gates": { "typecheck": "0 error", "vitest": "236/236", "build": "pass", "ui": "update 15/15 + quickchat 30/30", "accuracy": "99.29%（279/281 严格口径）" },
-      "commits": ["3cad69d", "ebd0a36"],
-      "notes": "qa 补 16 条边界用例；P3 文案修复（assetPatternHint 转义符外漏）与临时文件清理由厂长收尾"
-    },
-    "api_contract_added": "updateInstall(): Promise<{ok:boolean;error?:string}>"
+      "gates": {
+        "typecheck": "0 error",
+        "vitest": "236/236",
+        "smoke_mock": "MOCK_SMOKE_PASS 9.3s ok=true（打包版 v0.2.1 全链路）",
+        "smoke_failover": "MOCK_SMOKE_PASS 2.6s mockfail→mockok quota_exhausted ×2",
+        "publish": "132 文件 EXIT=0；幂等复跑 NO_CHANGES；远端 parents=1",
+        "deterministic_checks": "12/12（100%）"
+      },
+      "commits": ["aff12d4", "51152aa"],
+      "remote_head": "890f4a2f（chore(release): ClaudeWorkbench v0.2.1 快照同步）",
+      "coverage_gap": "真实供应商 smoke 未跑（需用户 API 配额与密钥，未擅自使用）",
+      "notes": "根因同源：ship 通道升级到 release-v<version>/ 后，冒烟脚本与发布脚本未跟着改"
+    }
   },
   "next_iteration_candidates": [
     { "id": "ITER-v0.3.0", "theme": "派活式智能体：M2 执行器升级为完整 claude CLI agent 循环（权限 Broker + resume）" },
     { "id": "ITER-v0.4.0", "theme": "技能/插件平台（skills 包管理 + 面板插件）" }
   ],
   "quality_baseline": {
-    "vitest": "213/213",
+    "vitest": "236/236",
     "tsc": "0 error",
     "build": "pass",
     "ux_gate": "真实 GUI 操作流自检（dev 版 + 打包版双跑 30/30）；透明窗口三怪癖见开发日志 2026-10-25"
   },
   "history": [
     { "id": "ITER-20261024-v0.1.2", "result": "closed", "commits": ["95f7da5", "c52ee62"] },
-    { "id": "ITER-20261025-v0.2.0", "result": "closed", "commits": ["05e6824", "77304aa", "3aa3d91"] }
+    { "id": "ITER-20261025-v0.2.0", "result": "closed", "commits": ["05e6824", "77304aa", "3aa3d91"] },
+    { "id": "ITER-20261104-v0.2.1", "result": "closed", "commits": ["3cad69d", "ebd0a36", "319621c", "5d65e2b"], "accuracy": "99.29%（279/281）" }
   ]
 }
