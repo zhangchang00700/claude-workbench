@@ -24,7 +24,7 @@
     "dist:v12": "npm run build && electron-builder --win -c electron-builder.v12.yml",
     "dist:v13": "npm run build && electron-builder --win -c electron-builder.v13.yml",
     "dist:v14": "npm run build && electron-builder --win -c electron-builder.v14.yml",
-    "smoke:failover": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mock.ps1 -Exe node_modules/electron/dist/electron.exe -ExeArgs . -FailoverMode quota402",
+    "smoke:failover": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mock.ps1 -FailoverMode quota402",
     "launch:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/launch-check.ps1",
     "ui:check": "node scripts/ui-check.mjs",
     "ui:e2e": "node scripts/ui-e2e.mjs",

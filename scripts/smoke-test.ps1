@@ -21,13 +21,13 @@ foreach ($n in @('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'FTP_PROXY')) {
 }
 
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'find-smoke-exe.ps1')
 if (-not $Exe) {
-    $candidates = Get-ChildItem -Path (Join-Path $root 'release') -Filter '*portable*.exe' -File -ErrorAction SilentlyContinue
-    if (-not $candidates) {
-        Write-Error 'No portable exe found under release/. Run npm run dist first.'
+    $Exe = Find-SmokeExe $root
+    if (-not $Exe) {
+        Write-Error 'No built exe found. Run npm run ship first.'
         exit 10
     }
-    $Exe = ($candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
 }
 
 Write-Output "smoke_exe=$Exe"

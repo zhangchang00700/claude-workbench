@@ -42,17 +42,12 @@ function Wait-Port([int]$Port, [int]$MaxSec) {
     return $false
 }
 
+. (Join-Path $PSScriptRoot 'find-smoke-exe.ps1')
 if (-not $Exe) {
-    $unpacked = Join-Path $root 'release\win-unpacked\ClaudeWorkbench.exe'
-    if (Test-Path $unpacked) {
-        $Exe = $unpacked
-    } else {
-        $candidates = Get-ChildItem -Path (Join-Path $root 'release') -Filter '*portable*.exe' -File -ErrorAction SilentlyContinue
-        if (-not $candidates) {
-            Write-Error 'No exe found. Run npm run dist first.'
-            exit 10
-        }
-        $Exe = ($candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+    $Exe = Find-SmokeExe $root
+    if (-not $Exe) {
+        Write-Error 'No built exe found. Run npm run ship first.'
+        exit 10
     }
 }
 

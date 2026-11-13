@@ -6,8 +6,8 @@
 
 以 claude CLI 为内核、Electron 便携单文件 exe 为载体的「AI 化 / 自动化 / 程序化 / 工业化工作台」。
 - 目标机零依赖：自带 Chromium + Node 运行时 + claude CLI 原生二进制（asarUnpack）
-- V1 全量范围：对话台 / 任务队列 / 定时自动化 / 模板 SOP 流水线 / 日志进度看板
-- 分发给他人使用：首次启动配置向导，密钥 DPAPI 加密，V1 不签名（附处置说明）
+- 功能范围（v0.2.1）：对话台 / 多会话页签 / 会话项目分组与归档 / 全局热键速聊条（ClaudeBot 入口）/ 任务队列 / 定时自动化 / 模板 SOP 流水线 / 模型路由站（14 家供应商 + 故障转移）/ 用量成本看板 / 托盘 / 桌宠 / 内置更新检测与一键安装
+- 分发给他人使用：首次启动配置向导，密钥 safeStorage 加密，产物经 signtool 签名
 
 ## 2. 环境约定（硬约束）
 
@@ -24,8 +24,9 @@
 | `npm run dev` | 开发模式（electron-vite dev + 热重载） |
 | `npm run build` | 构建 out/ |
 | `npm run typecheck` | TS 全量类型检查 |
-| `npm run dist` | 构建 + 打包便携 exe 到 release/ |
-| `npm test` | vitest 单元测试 |
+| `npm run ship` | 版本自增 + 构建 + 打包 release-v<version>/ + 自动清理旧产物 |
+| `npx vitest run` | 单元测试（发版前 0 failed） |
+| `node scripts/publish-release.mjs` | 发布 GitHub Releases（gh api 通道，curl 需 --ssl-no-revoke） |
 | `npm run smoke` | **冒烟硬门禁**：scripts/smoke-test.ps1 端到端真实 query |
 
 冒烟契约：环境变量 `CLAUDE_WORKBENCH_SMOKE=1` 启动 exe（无窗口运行），向 `%TEMP%/claude-workbench-smoke-result.json` 写结果，退出码 0 且 ok=true 为通过。**不能用 `--smoke` 命令行参数触发**：若进程被以纯 Node 模式启动，Node 参数解析器会在 JS 执行前以退出码 9 拒绝未知 flag。冒烟是 R1（SDK 打包可用性）/ R2（env 整体替换）/ R7（版本配对）的回归网，**每次发布前必跑**。
@@ -33,13 +34,15 @@
 冒烟两种模式：
 - `npm run smoke`：真实供应商（凭证：`SMOKE_PROVIDER`+`SMOKE_AUTH_TOKEN`，或导入本机 `~/.claude/settings.json`）
 - `npm run smoke:mock`：本地 mock 上游（零外部配额，CI/回归首选，验证 exe→路由站→上游全链路）
+- `npm run smoke:failover`：故障转移演练（首个上游故意失败，验证自动切到备用供应商）
 
-构建通道（本机环境特例）：
-- `npm run dist` → `release/`（标准通道；输出目录被 AV/索引器锁定时会失败）
-- `npx electron-builder --win portable -c electron-builder.fresh.yml` → `release-fresh/`（绕开锁定目录）
-- `npx electron-builder --win portable -c electron-builder.fresh2.yml` → `release-fresh2/`（**离线通道**：`electronDist: node_modules/electron/dist` 跳过下载/解压/改名，规避 Defender 实时扫描导致的 EPERM）
-- `npm run dist:v3` → `release-v3/`；`npm run dist:v4` → `release-v4/`（**当前交付通道**，离线 + 双产物：portable exe + zip）
-- **输出目录只能换号、不能复用**：electron-builder 复用目录时会 `emptyDir` 清 80+ 文件，触发宿主 safe-delete 批量确认钩子（阈值 50）而失败；旧目录又常被 AV/索引器持锁删不掉。目录被占就复制一份 yml 改 `directories.output` 递增编号。
+构建与发版通道：
+- `npm run ship`（scripts/ship.mjs）：npm version patch → build → electron-builder.ship.yml → `release-v<version>/`（zip + 便携 exe，产物名含版本号）→ clean-releases 自动清理（保留最新 2）
+- `node scripts/check-ship.mjs`：打包前置校验（version/tag/产物名三者对齐，不对齐会 FAIL——不对齐会导致用户无限更新提示）
+- 发版：`node scripts/publish-release.mjs`（gh api 建 release + curl 流式上传 asset；本机代理仅放行 api.github.com）
+- 旧通道（dist / fresh / fresh2 / dist:vN）已废弃，历史 yml 已移除，统一 ship 通道
+- **输出目录只能换号、不能复用**：ship 每次按版本号生成新的 `release-v<version>/` 正是为此——electron-builder 复用目录时会 `emptyDir` 清 80+ 文件，触发宿主 safe-delete 批量确认钩子（阈值 50）而失败；旧目录又常被 AV/索引器持锁删不掉。
+- 冒烟脚本按版本号自动发现最新 `release-v<version>/` 里的 exe（scripts/find-smoke-exe.ps1），不再依赖已清理的 `release/` 目录。
 
 启动体检（新）：
 - `npm run launch:check`：启动应用并计时到窗口出现，打印 `LAUNCH_CHECK_PASS` + main.log 尾部。**用户反馈「打不开」时第一件事跑它**。

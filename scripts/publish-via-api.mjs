@@ -47,6 +47,28 @@ async function gh(endpoint, body, method = 'POST') {
   }
 }
 
+/** 提交说明按 package.json 版本动态生成，避免远端历史永远停在「v0.1.1 初始发布」。 */
+function releaseMessage(fileCount) {
+  let version = 'unknown'
+  try {
+    version = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version
+  } catch {
+    /* 读不到就留 unknown，不阻断同步 */
+  }
+  let title = ''
+  try {
+    const notes = fs.readFileSync(
+      path.join(ROOT, 'docs', 'release-notes', `v${version}.md`),
+      'utf8'
+    )
+    title = (notes.split(/\r?\n/).find((line) => /^#\s+/.test(line)) ?? '').replace(/^#\s+/, '').trim()
+  } catch {
+    /* 没有该版本的说明文件就不带标题 */
+  }
+  const summary = `通过 GitHub Git Data API 同步当前工作树快照（${fileCount} 个受控文件）。`
+  return `chore(release): ClaudeWorkbench v${version} 快照同步\n\n${title ? `${title}\n\n` : ''}${summary}`
+}
+
 async function main() {
   const files = gitTracked()
   console.log(`tracked files: ${files.length}`)
@@ -125,11 +147,26 @@ async function main() {
   console.log(`blobs all uploaded (cache hits excluded, retries=${retried})`)
 
   const tree = await gh(`${GIT_API}/trees`, { tree: entries })
-  const commit = await gh(`${GIT_API}/commits`, {
-    message:
-      'Initial public release: ClaudeWorkbench v0.1.1\n\nAI industrialized workbench on claude CLI + Electron: chat, task queue, template pipeline, schedules, usage/cost dashboard, desktop pet.',
-    tree: tree.sha
-  })
+  const parentSha = ref && ref.object ? ref.object.sha : undefined
+
+  // 内容没变就不要制造一条空提交（重复同步是常态）
+  if (parentSha) {
+    try {
+      const parent = await gh(`${GIT_API}/commits/${parentSha}`, undefined, 'GET')
+      if (parent.tree && parent.tree.sha === tree.sha) {
+        console.log(`NO_CHANGES tree=${tree.sha.slice(0, 8)}; ${BRANCH} already up to date`)
+        console.log(`PUBLISHED ${TARGET}@${BRANCH} commit=${parentSha} files=${entries.length} (unchanged)`)
+        return
+      }
+    } catch {
+      /* 读不到父提交就照常提交 */
+    }
+  }
+
+  // 挂上 parent，让公开仓库保留连续的迭代历史（原来是每次一条孤立提交）
+  const body = { message: releaseMessage(entries.length), tree: tree.sha }
+  if (parentSha) body.parents = [parentSha]
+  const commit = await gh(`${GIT_API}/commits`, body)
   if (ref && ref.object) {
     await gh(`${GIT_API}/refs/heads/${BRANCH}`, { sha: commit.sha, force: true }, 'PATCH')
     console.log('updated existing ref')
