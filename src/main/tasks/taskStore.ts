@@ -10,7 +10,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import type { ModelTier, TaskRecord } from '../../shared/types'
+import type { ModelTier, PermissionMode, TaskMode, TaskRecord } from '../../shared/types'
 
 let _root: string | null = null
 
@@ -46,7 +46,7 @@ function readOne(id: string): TaskRecord | null {
     const raw = fs.readFileSync(taskFile(id), 'utf8')
     const rec = JSON.parse(raw) as TaskRecord
     if (!rec || typeof rec.id !== 'string') return null
-    return rec
+    return normalizeTask(rec)
   } catch {
     return null
   }
@@ -102,6 +102,9 @@ export function clearTasks(): void {
 /**
  * 工厂：生成一个 queued 状态的任务记录。
  * 标题缺省取 prompt 前 40 字，保证列表可读。
+ *
+ * v0.3.0：新增 mode 通道选择。缺省 'text'，与 M2 行为完全一致；
+ * 选 'agent' 时走 CLI，可调工具并支持 resume。
  */
 export function createTaskRecord(input: {
   title?: string
@@ -109,10 +112,15 @@ export function createTaskRecord(input: {
   tier?: ModelTier
   maxTokens?: number
   maxRetries?: number
+  mode?: TaskMode
+  permissionMode?: PermissionMode
+  maxTurns?: number
+  cwd?: string | null
 }): TaskRecord {
   const now = Date.now()
   const prompt = (input.prompt ?? '').trim()
   const title = (input.title?.trim() || prompt.slice(0, 40) || '未命名任务').slice(0, 80)
+  const mode: TaskMode = input.mode === 'agent' ? 'agent' : 'text'
   return {
     id: crypto.randomBytes(10).toString('hex'),
     title,
@@ -127,6 +135,24 @@ export function createTaskRecord(input: {
     finishedAt: null,
     output: '',
     error: null,
-    lastProvider: null
+    lastProvider: null,
+    mode,
+    cliSessionId: null,
+    // agent 通道才需要权限模式；text 通道不涉及工具调用
+    permissionMode: mode === 'agent' ? (input.permissionMode ?? 'default') : undefined,
+    maxTurns: mode === 'agent' ? Math.max(1, input.maxTurns ?? 20) : undefined,
+    cwd: mode === 'agent' ? (input.cwd ?? null) : null
   }
+}
+
+/** 旧记录缺 field 时的读取兜底：mode 缺失一律按 'text'（M2 行为）处理 */
+export function normalizeTask(t: TaskRecord): TaskRecord {
+  if (t.mode !== 'agent') t.mode = 'text'
+  if (t.cliSessionId === undefined) t.cliSessionId = null
+  if (t.mode === 'agent') {
+    if (!t.permissionMode) t.permissionMode = 'default'
+    if (!t.maxTurns || t.maxTurns < 1) t.maxTurns = 20
+    if (t.cwd === undefined) t.cwd = null
+  }
+  return t
 }

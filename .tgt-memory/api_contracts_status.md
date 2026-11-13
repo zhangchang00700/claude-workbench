@@ -11,7 +11,8 @@
 | 供应商预设 | **src/shared/types.ts**（`BUILTIN_PRESETS`） | stable | 14 家 priority 1–14；presets.test.ts 守卫 id/priority 唯一 + 端点可拼 + docUrl 齐全。⚠️ `src/shared/presets.ts` 不存在 |
 | 虚拟模型档位 | TIER_ALIASES（wb-opus/sonnet/haiku） | stable | CLI env 注入用，路由站负责解析真实模型 |
 | 路由站日志行格式 | server.ts RouterEvent | frozen | usageStore/UsagePanel 依赖；加字段必须向后兼容 |
-| 任务执行器 | src/main/tasks/taskRunner.ts | stable | 复用路由站 /v1/messages stream:false + 故障转移 |
+| 任务执行器 | **src/main/tasks/taskExecutor.ts**（分派）+ taskRunner.ts（调度） | stable | 双通道：`text` 走路由站 stream:false；`agent` 走 CLI（runPrompt）+ PermissionBroker + resume。taskRunner 本身与通道无关 |
+| TaskRecord 通道字段 | src/shared/types.ts | **draft（v0.3.0 未发版）** | `mode?: 'text'\|'agent'`（缺省 text）、`cliSessionId?`、`permissionMode?`、`maxTurns?`、`cwd?`；旧记录读时由 `normalizeTask()` 兜底 |
 
 ## 外部依赖契约
 | 依赖 | 契约 | 风险 |
@@ -27,4 +28,5 @@
 - 发布侧：`scripts/publish-release.mjs`（curl 上传必须带 `--ssl-no-revoke`）+ `scripts/publish-via-api.mjs`（挂 parent 的连续历史 + NO_CHANGES 幂等）。
 
 ## 未定契约（下一迭代候选）
-- v0.3.0 派活式智能体：M2 执行器升级为完整 claude CLI agent 循环（权限 Broker + resume）——**战略方向，待人工审批，不得擅自开工**
+- v0.3.0 已落地「双通道」第一刀（见上表 `TaskRecord 通道字段`）：`tasks:create` 新增 `mode/permissionMode/maxTurns/cwd`，缺省全部向后兼容。
+- 仍待补：agent 通道的**中途工具调用流式回传**（现仅返回最终文本，渲染层看不到中间工具名）；以及模板/定时流水线是否允许产出 agent 任务（当前模板与定时只产 text 任务）。

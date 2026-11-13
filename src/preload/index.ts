@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { ConfigView, ProviderView } from '../main/ipc'
-import type { ModelTier } from '../shared/types'
+import type { ModelTier, PermissionMode, TaskMode } from '../shared/types'
 
 export type { ConfigView, ProviderView }
 
@@ -56,9 +56,19 @@ const api = {
     ipcRenderer.invoke('permission:respond', id, decision),
 
   listTasks: (): Promise<unknown> => ipcRenderer.invoke('tasks:list'),
-  createTask: (
-    input: { title?: string; prompt: string; tier?: ModelTier; maxTokens?: number; maxRetries?: number; batch?: boolean }
-  ): Promise<{ ok: boolean; count: number; ids: string[] }> => ipcRenderer.invoke('tasks:create', input),
+  createTask: (input: {
+    title?: string
+    prompt: string
+    tier?: ModelTier
+    maxTokens?: number
+    maxRetries?: number
+    batch?: boolean
+    /** v0.3.0：text=直连路由站单次问答（默认）；agent=走 CLI 可调工具、支持 resume */
+    mode?: TaskMode
+    permissionMode?: PermissionMode
+    maxTurns?: number
+    cwd?: string | null
+  }): Promise<{ ok: boolean; count: number; ids: string[] }> => ipcRenderer.invoke('tasks:create', input),
   startTasks: (): Promise<{ ok: boolean; running: boolean }> => ipcRenderer.invoke('tasks:start'),
   pauseTasks: (): Promise<{ ok: boolean }> => ipcRenderer.invoke('tasks:pause'),
   cancelTask: (id: string): Promise<{ ok: boolean }> => ipcRenderer.invoke('tasks:cancel', id),

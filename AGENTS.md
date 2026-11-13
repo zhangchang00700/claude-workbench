@@ -37,6 +37,7 @@
 - `npm run smoke:failover`：故障转移演练（首个上游故意失败，验证自动切到备用供应商）
 
 构建与发版通道：
+- **术语澄清（勿混淆）**：`release-v<version>/` 是**本地构建产物目录**（zip + exe），**不是 git tag/branch**；本地仓库无 tag，版本 tag `v<version>` 由远端 GitHub Release 承载。因此「`release-vX` 与 version 对齐」指的是产物目录与 package.json 版本一致，不等于本地存在同名 git ref。
 - `npm run ship`（scripts/ship.mjs）：npm version patch → build → electron-builder.ship.yml → `release-v<version>/`（zip + 便携 exe，产物名含版本号）→ clean-releases 尽力清理（保留最新 2）
   - **清理是 best-effort，不是门禁**：非交互会话回收站 API 不可用时会跳过全部目录并打印 `CLEAN_INCOMPLETE`，退出码仍为 0（构建已成功，不因清理失败伪阻断）。看到该标记请在**交互式 PowerShell** 重跑 `node scripts/clean-releases.mjs --yes --keep=2`；`--permanent`（永久删除）须人工确认，AI 会话不得擅自使用。
 - `node scripts/check-ship.mjs`：打包前置校验（version/tag/产物名三者对齐，不对齐会 FAIL——不对齐会导致用户无限更新提示）
@@ -81,6 +82,10 @@
 ## 6. 里程碑与文档索引
 
 里程碑单一真源为 `.tgt-memory/progress_tracker.json`（编号以此为准，本节不另立编号）。截至 v0.2.1 **全部 done**：M1 对话与会话 / M2 任务队列 / M3 模板流水线 / M4 定时自动化 / M5 用量与成本看板 / M6 自动更新 / M7 ClaudeBot MVP 速聊入口 / P0 托盘 / P0 预设 14 家 / P1 厂商兼容回归矩阵。
+
+**进行中（v0.3.0，未发版）**：M8 派活式智能体 —— 任务队列加 `mode` 双通道：`text`（直连路由站单次问答，M2 原行为）与 `agent`（走 claude CLI，可调工具、经 PermissionBroker 弹窗授权、支持 `resume` 续接）。分派逻辑在 `src/main/tasks/taskExecutor.ts`，工具闸门复用 `permission-broker.ts`。旧记录 `mode` 缺失一律读作 `text`，行为完全兼容。
+
+**门禁约定**：`tasks:create` 的 `mode` 缺省为 `text`；agent 任务的 `permissionMode` 缺省为 `default`（每次工具调用都问），**不得**在代码里静默改成放行档。
 
 现有文档（只列真实存在的路径）：
 - `docs/design/模型路由站设计.md`：路由站协议与故障转移设计

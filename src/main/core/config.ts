@@ -16,7 +16,8 @@ import {
 
 export type { AppConfig, ProviderConfig, ProviderModelMap } from '../../shared/types'
 
-export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan'
+/** 权限模式单一真源在 shared/types.ts（agent 通道与 CLI 会话共用），此处仅转出保持既有 import 不变 */
+export type { PermissionMode } from '../../shared/types'
 
 export function userDataDir(): string {
   return app.getPath('userData')

@@ -2,6 +2,7 @@ import type { ConfigView, ProviderView } from '../main/ipc'
 import type {
   ModelTier,
   PermissionDecision,
+  PermissionMode,
   PermissionRequestView,
   ProviderProtocol,
   ScheduleRecord,
@@ -9,6 +10,7 @@ import type {
   SessionProject,
   SessionRecord,
   TaskEvent,
+  TaskMode,
   TaskRecord,
   TemplateRecord,
   TemplateVars,
@@ -20,6 +22,7 @@ export type {
   ConfigView,
   ProviderView,
   ModelTier,
+  PermissionMode,
   ProviderProtocol,
   PermissionDecision,
   PermissionRequestView,
@@ -28,6 +31,7 @@ export type {
   SessionProject,
   SessionRecord,
   TaskEvent,
+  TaskMode,
   TaskRecord,
   TemplateRecord,
   TemplateVars,
@@ -173,7 +177,7 @@ export interface WorkbenchApi {
   archiveProject(id: string, archived: boolean): Promise<{ ok: boolean }>
   removeProject(id: string): Promise<{ ok: boolean; moved: number }>
   respondPermission(id: string, decision: PermissionDecision): Promise<{ ok: boolean }>
-  // ── 任务队列（M2） ──
+  // ── 任务队列（M2；v0.3.0 加 mode 通道） ──
   listTasks(): Promise<TaskRecord[]>
   createTask(input: {
     title?: string
@@ -182,6 +186,11 @@ export interface WorkbenchApi {
     maxTokens?: number
     maxRetries?: number
     batch?: boolean
+    /** text=直连路由站单次问答（默认）；agent=走 CLI 可调工具、支持 resume */
+    mode?: TaskMode
+    permissionMode?: PermissionMode
+    maxTurns?: number
+    cwd?: string | null
   }): Promise<{ ok: boolean; count: number; ids: string[] }>
   startTasks(): Promise<{ ok: boolean; running: boolean }>
   pauseTasks(): Promise<{ ok: boolean }>

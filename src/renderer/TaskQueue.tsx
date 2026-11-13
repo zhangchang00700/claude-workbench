@@ -1,11 +1,32 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ModelTier, TaskEvent, TaskRecord } from '../shared/preload-api'
+import type { ModelTier, PermissionMode, TaskEvent, TaskMode, TaskRecord } from '../shared/preload-api'
 import type { TaskStatus } from '../shared/types'
 
 const TIER_LABEL: Record<ModelTier, string> = {
   opus: '高（opus）',
   sonnet: '中（sonnet·默认）',
   haiku: '低（haiku）'
+}
+
+/** 执行通道文案（v0.3.0）：text 快而省，agent 能动手 */
+const MODE_META: Record<TaskMode, { label: string; short: string; hint: string }> = {
+  text: {
+    label: '文本',
+    short: '文本',
+    hint: '直连路由站单次问答，快、省，适合批量生成与改写'
+  },
+  agent: {
+    label: '智能体',
+    short: '智能体',
+    hint: '走 CLI 多轮执行，可读文件/跑命令；工具调用会弹窗请你确认'
+  }
+}
+
+const PERMISSION_LABEL: Record<PermissionMode, string> = {
+  default: '每次确认（最安全）',
+  acceptEdits: '自动放行文件编辑',
+  bypassPermissions: '全部放行（谨慎）',
+  plan: '只做计划不执行'
 }
 
 const STATUS_META: Record<TaskStatus, { label: string; cls: string; dot: string }> = {
@@ -32,6 +53,10 @@ export default function TaskQueue(): React.JSX.Element {
   const [tier, setTier] = useState<ModelTier>('sonnet')
   const [maxRetries, setMaxRetries] = useState(1)
   const [batch, setBatch] = useState(false)
+  // v0.3.0 通道选择：text（默认，与旧行为一致）/ agent（可调工具）
+  const [mode, setMode] = useState<TaskMode>('text')
+  const [permissionMode, setPermissionMode] = useState<PermissionMode>('default')
+  const [maxTurns, setMaxTurns] = useState(20)
   const [running, setRunning] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [toast, setToast] = useState('')
@@ -56,7 +81,9 @@ export default function TaskQueue(): React.JSX.Element {
       }
       const next = ev.all
       setTasks(next)
-      setRunning(next.some((t) => t.status === 'running' || t.status === 'queued'))
+      // 只有「真有任务在跑」才算 running。仅排队（queued）不算：
+      // 否则新建任务后按钮立刻变「暂停」，但 runner 根本没启动，用户会误以为在跑。
+      setRunning(next.some((t) => t.status === 'running'))
     })
   }, [])
 
@@ -73,9 +100,13 @@ export default function TaskQueue(): React.JSX.Element {
       prompt: text,
       tier,
       maxRetries,
-      batch
+      batch,
+      mode,
+      // agent 通道才用得上这些；text 通道传了也会被主进程忽略
+      permissionMode: mode === 'agent' ? permissionMode : undefined,
+      maxTurns: mode === 'agent' ? maxTurns : undefined
     })
-    notify(batch ? `已加入 ${res.count} 条任务` : '已加入队列')
+    notify(batch ? `已加入 ${res.count} 条任务` : mode === 'agent' ? '已加入队列（智能体）' : '已加入队列')
     setPrompt('')
     setTitle('')
   }
@@ -135,11 +166,35 @@ export default function TaskQueue(): React.JSX.Element {
         </div>
         <textarea
           className="mt-3 w-full h-24 resize-none bg-[#12181e] border border-[#232c35] rounded px-3 py-2 text-sm text-[#e8eef4] placeholder-[#4a5763] focus:outline-none focus:border-[#2f6f7a]"
-          placeholder={batch ? '把多行 prompt 粘进来，每行一条任务' : '输入任务指令（纯文本 prompt，由路由站批量执行）'}
+          placeholder={
+            batch
+              ? '把多行 prompt 粘进来，每行一条任务'
+              : mode === 'agent'
+                ? '描述要它做的事（例如：检查 src 下的类型错误并修复）'
+                : '输入任务指令（纯文本 prompt，由路由站批量执行）'
+          }
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />
         <div className="mt-3 flex items-center gap-4 flex-wrap">
+          {/* 执行通道（v0.3.0） */}
+          <div className="flex items-center gap-2 text-xs text-[#8b9aa7]">
+            通道
+            <div className="flex rounded border border-[#232c35] overflow-hidden">
+              {(['text', 'agent'] as TaskMode[]).map((m) => (
+                <button
+                  key={m}
+                  className={`px-2.5 py-1 text-xs ${
+                    mode === m ? 'bg-[#1e93a3] text-[#06282c] font-medium' : 'bg-[#151b21] text-[#8b9aa7] hover:text-[#d8dfe6]'
+                  }`}
+                  onClick={() => setMode(m)}
+                  title={MODE_META[m].hint}
+                >
+                  {MODE_META[m].label}
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="flex items-center gap-2 text-xs text-[#8b9aa7] cursor-pointer">
             <input type="checkbox" checked={batch} onChange={(e) => setBatch(e.target.checked)} className="accent-[#1e93a3]" />
             批量（按行拆分）
@@ -163,6 +218,38 @@ export default function TaskQueue(): React.JSX.Element {
             加入队列
           </button>
         </div>
+        {/* agent 通道专属：权限模式与轮次上限 */}
+        {mode === 'agent' && (
+          <div className="mt-2 flex items-center gap-4 flex-wrap text-xs text-[#8b9aa7]">
+            <label className="flex items-center gap-2">
+              权限
+              <select
+                className="bg-[#151b21] border border-[#232c35] rounded px-2 py-1 text-[#d8dfe6]"
+                value={permissionMode}
+                onChange={(e) => setPermissionMode(e.target.value as PermissionMode)}
+              >
+                <option value="default">{PERMISSION_LABEL.default}</option>
+                <option value="acceptEdits">{PERMISSION_LABEL.acceptEdits}</option>
+                <option value="plan">{PERMISSION_LABEL.plan}</option>
+                <option value="bypassPermissions">{PERMISSION_LABEL.bypassPermissions}</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2">
+              最多轮次
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={maxTurns}
+                onChange={(e) => setMaxTurns(Math.max(1, Math.min(100, Number(e.target.value) || 1)))}
+                className="mono w-16 bg-[#151b21] border border-[#232c35] rounded px-2 py-1 text-[#d8dfe6]"
+              />
+            </label>
+            <span className="text-[#6d8294]">{MODE_META.agent.hint}</span>
+            {batch && <span className="text-[#e0a34c]">批量智能体任务会逐条弹出权限确认，建议先小批试跑</span>}
+          </div>
+        )}
+        {mode === 'text' && <div className="mt-2 text-xs text-[#6d8294]">{MODE_META.text.hint}</div>}
       </div>
 
       {/* 控制条 + 统计 */}
@@ -204,7 +291,9 @@ export default function TaskQueue(): React.JSX.Element {
             <div className="text-center">
               <div className="mono text-[11px] tracking-[0.18em] text-[#53d3e0] mb-2">TASK QUEUE</div>
               <p className="text-sm text-[#8b9aa7]">队列为空。在上方填写 prompt 后「加入队列」，再点「开始」批量执行。</p>
-              <p className="text-xs text-[#6d8294] mt-2">任务由本地路由站统一执行，自动享受故障转移与并发限流。</p>
+              <p className="text-xs text-[#6d8294] mt-2">
+                文本通道由本地路由站统一执行（自动故障转移与并发限流）；智能体通道走 CLI，可实际读写文件。
+              </p>
             </div>
           </div>
         )}
@@ -219,6 +308,16 @@ export default function TaskQueue(): React.JSX.Element {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-[#d8dfe6] truncate">{t.title}</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded border ${meta.cls}`}>{meta.label}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                        t.mode === 'agent'
+                          ? 'text-[#b79cf5] border-[#453a63] bg-[#1a1526]'
+                          : 'text-[#7c8c98] border-[#2a3640]'
+                      }`}
+                      title={MODE_META[t.mode ?? 'text'].hint}
+                    >
+                      {MODE_META[t.mode ?? 'text'].short}
+                    </span>
                     <span className="mono text-[10px] text-[#6d8294]">档位 {t.tier}</span>
                     <span className="mono text-[10px] text-[#6d8294]">
                       尝试 {t.attempts}/{t.maxRetries + 1}

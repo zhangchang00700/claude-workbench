@@ -21,7 +21,7 @@ import {
 } from './core/config'
 import { ensureRouter, getRouter, onFailover, reloadRouter } from './model-router'
 import { callRouterText, callRouterTextDetailed, findProviderByModel } from './model-router/messages'
-import { buildCliEnvOverrides, runPromptStream } from './claude/client'
+import { buildCliEnvOverrides, runPrompt, runPromptStream } from './claude/client'
 import { createPermissionBroker, type PermissionBroker } from './permission-broker'
 import {
   checkUpdate as runUpdateCheck,
@@ -43,6 +43,7 @@ import {
   clearProject
 } from './sessions'
 import { createTaskRunner, type TaskExecutor } from './tasks/taskRunner'
+import { createTaskExecutor } from './tasks/taskExecutor'
 import {
   clearTasks,
   createTaskRecord,
@@ -84,8 +85,10 @@ import {
   normalizeBaseUrl,
   validateBaseUrl,
   type ModelTier,
+  type PermissionMode,
   type ProviderProtocol,
   type ScheduleRecord,
+  type TaskMode,
   type TaskRecord,
   type TemplateVars
 } from '../shared/types'
@@ -263,17 +266,34 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
   initProjectsRoot(userDataDir())
 
   /**
-   * 生产执行器：直连本地路由站 /v1/messages（stream:false），由路由站完成
-   * 模型解析、故障转移与熔断。调用体抽到 model-router/messages.ts，
-   * 与速聊条 quickChatAsk 共用同一条链路（同端点、同鉴权、同兜底）。
+   * 生产执行器（v0.3.0 双通道）：
+   * - text：直连本地路由站 /v1/messages（stream:false），由路由站完成模型解析、
+   *   故障转移与熔断。与速聊条 quickChatAsk 共用同一条链路。
+   * - agent：走 claude CLI（runPrompt），工具调用经 permissionBroker 弹窗确认，
+   *   拿到的 CLI sessionId 回写任务记录以支持下次 resume。
+   * 分派逻辑抽在 tasks/taskExecutor.ts，便于无 electron 环境下单测。
    */
-  const taskExecutor: TaskExecutor = async (task, signal) => {
-    const r = await ensureRouterReady()
-    return callRouterText(
-      { baseUrl: r.baseUrl, localToken: loadConfig().router.localToken },
-      { prompt: task.prompt, tier: task.tier, maxTokens: task.maxTokens, signal }
-    )
-  }
+  const taskExecutor: TaskExecutor = createTaskExecutor({
+    textRunner: async ({ prompt, tier, maxTokens, signal }) => {
+      const r = await ensureRouterReady()
+      return callRouterText(
+        { baseUrl: r.baseUrl, localToken: loadConfig().router.localToken },
+        { prompt, tier, maxTokens, signal }
+      )
+    },
+    agentRunner: async (prompt, opts) => {
+      // env 在这里构建：需要先确保路由站已起，才能把 ANTHROPIC_BASE_URL 指过去
+      const r = await ensureRouterReady()
+      return runPrompt(prompt, { ...opts, env: buildCliEnvOverrides(r, { tier: opts.tier ?? 'sonnet' }) })
+    },
+    canUseTool: permissionBroker.handler,
+    defaultCwd: () => loadConfig().workspace.defaultDir,
+    onSessionId: (task, sessionId) => {
+      // 持久化 resume 句柄：任务重试或后续任务可续接同一 CLI 会话
+      task.cliSessionId = sessionId
+      putTask(task)
+    }
+  })
 
   const taskRunner = createTaskRunner({
     backend: { list: listTasks, get: getTask, put: putTask, remove: removeTask, clear: clearTasks },
@@ -298,16 +318,38 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
         maxTokens?: number
         maxRetries?: number
         batch?: boolean
+        /** v0.3.0：执行通道，缺省 text（M2 行为） */
+        mode?: TaskMode
+        permissionMode?: PermissionMode
+        maxTurns?: number
+        cwd?: string | null
       }
     ) => {
       const tier: ModelTier =
         input.tier === 'opus' || input.tier === 'sonnet' || input.tier === 'haiku' ? input.tier : 'sonnet'
+      const mode: TaskMode = input.mode === 'agent' ? 'agent' : 'text'
+      const permissionMode: PermissionMode =
+        input.permissionMode === 'acceptEdits' ||
+        input.permissionMode === 'bypassPermissions' ||
+        input.permissionMode === 'plan'
+          ? input.permissionMode
+          : 'default'
       const created: TaskRecord[] = []
       if (input.batch) {
         const lines = (input.prompt ?? '').split('\n').map((l) => l.trim()).filter(Boolean)
         for (const line of lines) {
           created.push(
-            createTaskRecord({ title: input.title, prompt: line, tier, maxTokens: input.maxTokens, maxRetries: input.maxRetries })
+            createTaskRecord({
+              title: input.title,
+              prompt: line,
+              tier,
+              maxTokens: input.maxTokens,
+              maxRetries: input.maxRetries,
+              mode,
+              permissionMode,
+              maxTurns: input.maxTurns,
+              cwd: input.cwd
+            })
           )
         }
       } else {
@@ -317,7 +359,11 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
             prompt: input.prompt,
             tier,
             maxTokens: input.maxTokens,
-            maxRetries: input.maxRetries
+            maxRetries: input.maxRetries,
+            mode,
+            permissionMode,
+            maxTurns: input.maxTurns,
+            cwd: input.cwd
           })
         )
       }

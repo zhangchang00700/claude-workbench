@@ -10,6 +10,14 @@
 export type ModelTier = 'opus' | 'sonnet' | 'haiku'
 
 /**
+ * Agent 通道权限模式（与 claude-agent-sdk 的 PermissionMode 对齐）。
+ *
+ * 安全边界：'default' 每次工具调用都要用户确认；'acceptEdits' 自动放行文件编辑；
+ * 'bypassPermissions' 全放行（仅限用户显式选择，且无窗口时 PermissionBroker 仍拒绝）。
+ */
+export type PermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan'
+
+/**
  * 上游端点协议类型。
  *
  * claude CLI 只说 Anthropic Messages 协议，所以路由站对上（CLI）永远是 Anthropic；
@@ -541,7 +549,24 @@ export interface TaskRecord {
   error: string | null
   /** 最近一次执行命中的供应商 id（结果旁注用，可选） */
   lastProvider?: string | null
+  /**
+   * 执行通道（v0.3.0 新增；旧记录缺省读作 'text'，行为与 M2 完全一致）：
+   * - 'text'：直连本地路由站 /v1/messages，单次问答，快、省、适合批量生成
+   * - 'agent'：走 claude CLI（runPrompt），可调工具、有权限闸门、可 resume 续接
+   */
+  mode?: TaskMode
+  /** agent 通道：CLI 会话 id，用于后续 resume（text 通道恒为 null） */
+  cliSessionId?: string | null
+  /** agent 通道：权限模式；默认 'default'（每次工具调用都问） */
+  permissionMode?: PermissionMode
+  /** agent 通道：最多轮次（工具调用循环上限），默认 20 */
+  maxTurns?: number
+  /** agent 通道：工作目录（缺省用 workspace.defaultDir） */
+  cwd?: string | null
 }
+
+/** 任务执行通道 */
+export type TaskMode = 'text' | 'agent'
 
 /** 任务队列实时事件（stream:event domain='tasks' 的 payload）。all 为最新全量列表，渲染层直接替换。 */
 export type TaskEvent =
