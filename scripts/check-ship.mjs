@@ -95,8 +95,11 @@ if (!fs.existsSync(cfgPath)) {
     if (targets.length === 0) bad('win.target 为空')
     else ok(`win.target = ${targets.join(', ')}`)
 
-    if (cfg.publish) ok(`publish 已配置（会生成 latest.yml，electron-updater 依赖它）\n       ${JSON.stringify(cfg.publish)}`)
-    else warn('未配置 publish → 不会生成 latest.yml，electron-updater 自动更新将失效')
+    // 本项目自动更新走 src/main/updater.ts 的 `gh api .../releases/latest`，
+    // 不使用 electron-updater，也不依赖 latest.yml（实测 v0.2.1 产物无此文件而更新通道正常）。
+    // 本机构建不加 --publish，上传统一由 scripts/publish-release.mjs 走 api.github.com。
+    if (cfg.publish) ok(`publish 已配置（仅影响额外更新元数据，本项目更新检测不依赖 latest.yml）\n       ${JSON.stringify(cfg.publish)}`)
+    else ok('未配置 publish：不影响本项目更新通道（gh api releases/latest）')
 
     if (cfg.electronDist) {
       if (fs.existsSync(path.join(ROOT, cfg.electronDist))) ok(`electronDist 存在：${cfg.electronDist}`)
@@ -106,7 +109,8 @@ if (!fs.existsSync(cfgPath)) {
     const br = cfg.directories?.buildResources
     if (br) {
       if (fs.existsSync(path.join(ROOT, br))) ok(`buildResources 存在：${br}`)
-      else warn(`buildResources 目录不存在：${br}（electron-builder 通常容忍，但会丢自定义图标）`)
+      else if (cfg.win?.icon) warn(`buildResources 目录不存在：${br}，且 win.icon 已配置 → 图标会丢失`)
+      else console.log(`  INFO buildResources 目录不存在：${br}（win 未配置自定义图标，无实际影响）`)
     }
 
     /* 3. 产物 + 更新通道契约（对齐 be 的 checkUpdate/downloadUpdate）*/
@@ -122,13 +126,15 @@ if (!fs.existsSync(cfgPath)) {
       // portable 出的是 exe
       const zip = files.find((n) => n.endsWith('.zip'))
       const exe = files.find((n) => n.endsWith('.exe'))
-      const yml = files.find((n) => n === 'latest.yml')
       if (zip) ok(`zip  ${zip}  ${(fs.statSync(path.join(outDir, zip)).size / 1024 / 1024).toFixed(1)} MB`)
       else warn('没有 .zip 产物')
       if (exe) ok(`exe  ${exe}  ${(fs.statSync(path.join(outDir, exe)).size / 1024 / 1024).toFixed(1)} MB`)
       else warn('没有 .exe 产物')
-      if (yml) ok(`latest.yml 已生成（自动更新可用）`)
-      else warn('没有 latest.yml → 自动更新检测会拿不到版本信息')
+      // 本项目更新检测走 gh api releases/latest，不读 latest.yml；有无此文件都不影响通道。
+      // 保留列出仅为产物清单完整性，绝不能据此判定「自动更新失效」。
+      console.log(
+        `  INFO latest.yml ${files.some((n) => n === 'latest.yml') ? '存在' : '未生成'}（本项目更新通道不依赖该文件，见 src/main/updater.ts）`
+      )
       if (expectNames.length) console.log(`  期望名：${expectNames.join(', ')}`)
     }
 

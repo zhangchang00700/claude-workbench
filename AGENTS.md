@@ -37,7 +37,8 @@
 - `npm run smoke:failover`：故障转移演练（首个上游故意失败，验证自动切到备用供应商）
 
 构建与发版通道：
-- `npm run ship`（scripts/ship.mjs）：npm version patch → build → electron-builder.ship.yml → `release-v<version>/`（zip + 便携 exe，产物名含版本号）→ clean-releases 自动清理（保留最新 2）
+- `npm run ship`（scripts/ship.mjs）：npm version patch → build → electron-builder.ship.yml → `release-v<version>/`（zip + 便携 exe，产物名含版本号）→ clean-releases 尽力清理（保留最新 2）
+  - **清理是 best-effort，不是门禁**：非交互会话回收站 API 不可用时会跳过全部目录并打印 `CLEAN_INCOMPLETE`，退出码仍为 0（构建已成功，不因清理失败伪阻断）。看到该标记请在**交互式 PowerShell** 重跑 `node scripts/clean-releases.mjs --yes --keep=2`；`--permanent`（永久删除）须人工确认，AI 会话不得擅自使用。
 - `node scripts/check-ship.mjs`：打包前置校验（version/tag/产物名三者对齐，不对齐会 FAIL——不对齐会导致用户无限更新提示）
 - 发版：`node scripts/publish-release.mjs`（gh api 建 release + curl 流式上传 asset；本机代理仅放行 api.github.com）
 - 旧通道（dist / fresh / fresh2 / dist:vN）已废弃，历史 yml 已移除，统一 ship 通道
@@ -73,15 +74,22 @@
 - **`ELECTRON_RUN_AS_NODE` 自愈**：沙箱化会话会设置该变量使 electron 退化为纯 Node（`require('electron')` 返回路径字符串、未知 flag 退出码 9）。`src/main/guard.ts` 检测到即清除该变量并自重启；测试时也可在 PowerShell 先 `$env:ELECTRON_RUN_AS_NODE = $null`
 - **GPU 三开关**：`disableHardwareAcceleration()` + `--disable-gpu` + `--disable-gpu-sandbox`——GPU 进程不可用的环境（虚拟机/沙箱/远程桌面）下 Chromium 会 FATAL，必须禁用
 - 配置：`%APPDATA%/ClaudeWorkbench/`（入口显式 setPath 固化，不随 package.json name 漂移）；config.json 密钥 safeStorage 加密 / app-settings/ / sessions.jsonl / tasks.jsonl / schedules.json / templates/ / logs/；**不读写用户 ~/.claude**
-- **模型路由站**（`src/main/model-router/`）：CLI 的 `ANTHROPIC_BASE_URL` 指向主进程 127.0.0.1 路由站；模型名一律用虚拟别名 `wb-opus/wb-sonnet/wb-haiku`，真实模型由路由站按供应商 priority 解析；内置 5 家供应商预设（glm/deepseek/kimi/agnes/ark）+ 自定义扩展位；故障转移（429/5xx/网络错误换家）+ 熔断（连续失败冷却半开）+ 档位降级（opus→sonnet→haiku）；`CW_PROVIDER_<ID>_*` 环境变量可免改文件覆盖一切；详见 `docs/design/模型路由站设计.md`
+- **模型路由站**（`src/main/model-router/`）：CLI 的 `ANTHROPIC_BASE_URL` 指向主进程 127.0.0.1 路由站；模型名一律用虚拟别名 `wb-opus/wb-sonnet/wb-haiku`，真实模型由路由站按供应商 priority 解析；内置 **14 家**供应商预设（`src/shared/types.ts` 的 `BUILTIN_PRESETS`，glm/deepseek/kimi/agnes/ark/stepfun/modelscope/minimax/tokenhub/siliconflow/aihubmix/bailian/qiniu/openrouter，priority 1–14）+ 自定义扩展位；故障转移判定看**四类信号**（HTTP 状态码 + 厂商业务码表 `failure.ts PROVIDER_BUSINESS_CODES` + 错误体关键字 + 流式首帧），只看状态码会漏掉国产厂商 200+SSE error；熔断（连续失败冷却半开）+ 档位降级（opus→sonnet→haiku）；`CW_PROVIDER_<ID>_*` 环境变量可免改文件覆盖一切；详见 `docs/design/模型路由站设计.md`
 - 数据层零原生依赖：JSONL 追加 + 单写者 WriteQueue 串行化；读时按 id 折叠取终态
 - 安全基线：contextIsolation=true、nodeIntegration=false、preload 仅窄 API + `stream:event` 单通道
 
-## 6. 里程碑与 SOP 索引
+## 6. 里程碑与文档索引
 
-- M0 空壳+冒烟（硬门禁）→ M1 单轮对话 → M2 权限与会话 → M3 任务队列 → M4 模板流水线 → M5 定时自动化 → M6 日志看板+分发就绪
-- SOP 文档（M6 补齐）：docs/sop/ 构建、冒烟测试、签名与分发、升级SDK与CLI
-- 风险清单：docs/risks.md
+里程碑单一真源为 `.tgt-memory/progress_tracker.json`（编号以此为准，本节不另立编号）。截至 v0.2.1 **全部 done**：M1 对话与会话 / M2 任务队列 / M3 模板流水线 / M4 定时自动化 / M5 用量与成本看板 / M6 自动更新 / M7 ClaudeBot MVP 速聊入口 / P0 托盘 / P0 预设 14 家 / P1 厂商兼容回归矩阵。
+
+现有文档（只列真实存在的路径）：
+- `docs/design/模型路由站设计.md`：路由站协议与故障转移设计
+- `docs/release-notes/v0.2.0.md`、`v0.2.1.md`：发版说明
+- `docs/report/开发日志_YYYY-MM-DD.md`：按日开发日志（4 要素）
+- `docs/screenshots/`：README 配图（仅 3 张 ASCII 名干净 UI 特写入库）
+- `.tgt-memory/`：项目记忆库五件套
+
+> 构建、冒烟、签名分发、SDK/CLI 升级的操作约定均在本文件 §3「命令速查」与 `docs/report/` 开发日志中；`docs/sop/`、`docs/risks.md` 从未创建，勿再引用。
 
 ## 7. 版本锁定
 

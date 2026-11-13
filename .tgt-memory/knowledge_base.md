@@ -34,3 +34,6 @@
 - **API 快照推送要挂 parent**：publish-via-api.mjs 原先每次 `POST /git/commits` 不带 parents + force PATCH ref，结果是每次一条孤立提交、message 还写死「v0.1.1 初始发布」，公开仓库历史永远停在第一天。现按 package.json 版本动态生成 message、挂 parent、tree 相同则 `NO_CHANGES` 幂等返回。
 - **公开仓库截图要先审内容**：主窗口截图常含内部调试对话、私人路径、自检桩文案，不能直接入库；只放干净的 UI 特写，且用 ASCII 文件名（中文名在 README 链接里需 URL 编码易错）。
 - **冒烟三条通道，真实通道不必向用户索要 Key**：`smoke` 的凭证由 smoke.ts 的 `readHostClaudeEnv()` 读本机 `~/.claude/settings.json`，按 `ANTHROPIC_BASE_URL` 主机名匹配内置供应商后回填；`smoke:mock` / `smoke:failover` 零配额。2026-11-13 真实通道实跑还顺带验证了厂商故障转移（DeepSeek 配额耗尽 → Kimi 429 → Agnes 500/429 → Kimi 200），这类证据离线 mock 给不了。
+- **发版链路的 best-effort 步骤必须输出可判定标记**（2026-11-13）：`ship.mjs` 用 `execFileSync(..., stdio:'inherit')` 调 `clean-releases.mjs --yes --keep=2`，而后者在非交互会话回收站 API 不可用时**一项未删、释放 0MB 却 exit 0** → 发版日志看着像「已自动瘦身」，实为伪成功。修法：输出 `CLEAN_OK` / `CLEAN_INCOMPLETE` 结构化标记 + 可执行的下一步，且**刻意不 exit 1**（构建已成功，不能反过来伪阻断）。删不掉是环境限制，不是发布失败。
+- **CLI 警告信息走 stdout，别用 console.warn**（2026-11-13）：PowerShell 5.1 会把原生命令的 stderr 包装成红色 `NativeCommandError` / `RemoteException` 异常块，用户看着像脚本崩溃。Node 脚本供 PS 调用时，非致命提示一律 `console.log` 到 stdout，保持单行干净、退出码 0。
+- **独立复验窗口内禁止并发写入**（2026-11-13）：派出 qa 做独立门禁复验后，厂长若同时改文件，「git status 应为空」这类一致性断言必然 FAIL。正确顺序：写入全部收口 → commit 到工作区干净 → 再通知 qa 按最终快照复验。qa 判 FAIL 就是 FAIL，不得要求改判。

@@ -21,9 +21,11 @@ asarUnpack:
   - '**/node_modules/@anthropic-ai/claude-agent-sdk-win32-x64/**'
 compression: normal
 npmRebuild: false
-# 自动更新基建：配了 publish 之后 electron-builder 才会生成 latest.yml（electron-updater 靠它判断有没有新版本）。
-# 注意：本地构建【不要加 --publish】——那条路会走 git 推 github.com，本机代理下必失败。
+# publish 配置：本地构建【不要加 --publish】——那条路会走 git 推 github.com，本机代理下必失败。
 # 产物上传统一交给 scripts/publish-release.mjs（走 api.github.com + uploads.github.com）。
+# 注意：本项目自动更新【不使用 electron-updater、不依赖 latest.yml】，
+# 而是由 src/main/updater.ts 走 `gh api repos/<owner>/<repo>/releases/latest` 检测新版本，
+# 再按 asset 名取 win.zip 下载。latest.yml 有无都不影响更新通道（check-ship.mjs 仅列出，不据此告警）。
 publish:
   provider: github
   owner: zhangchang00700

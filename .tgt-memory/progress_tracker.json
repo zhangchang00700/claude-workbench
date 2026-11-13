@@ -1,9 +1,10 @@
 {
   "project": "claude-workbench",
-  "updated_at": "2026-11-13T12:15:00+08:00",
+  "updated_at": "2026-11-13T13:09:54+08:00",
   "version": "0.2.1",
   "structure_hash": "1267b8b9ff9b",
-  "src_files": 70,
+  "structure_hash_note": "bootstrap(2026-10-24) 快照基准 70 文件；2026-11-13 实测 71 文件（+1.4%，远低于 30% 阈值）→ 结构未漂移，属内容失真而非结构变化，不重算覆盖。",
+  "src_files": 71,
   "milestones": {
     "M1_对话与会话": "done",
     "M2_任务队列": "done",
@@ -17,35 +18,32 @@
     "P1_回归矩阵": "done"
   },
   "current_iteration": {
-    "id": "ITER-20261113-maintenance",
-    "theme": "公开仓库一致性与发版门禁补漏（无新功能，自主巡检发现 5 处失真）",
-    "status": "closed",
-    "trigger": "老板「没活找活干，你看着办」；轻量收尾自行执行，未派 worker（规避 429 与并行开销）",
+    "id": "ITER-20261113-followup",
+    "theme": "一致性纠偏与伪成功修复（无新功能；自主巡检发现 8 处事实失真 + 1 处发版链路伪成功 + qa 报告 2 项误判归因裁决）",
+    "status": "in_progress",
+    "trigger": "老板「继续」；沿用上一轮自主巡检节奏，不反问、不擅自启动 v0.3.0 战略方向（一级人工审批事项）",
+    "team": "cw-v021-consistency（team-lead + qa）",
     "work_packages": [
-      { "id": "TGT-20261113-01", "owner": "team-lead", "title": "README 重写到 v0.2.1 + AGENTS.md 过时项修正（含半成品收口）", "status": "done" },
-      { "id": "TGT-20261113-02", "owner": "team-lead", "title": "补提交 package.json 0.2.1 版本号（bump 原发生在 commit 之后）", "status": "done" },
-      { "id": "TGT-20261113-03", "owner": "team-lead", "title": "publish-via-api.mjs 动态 message + parent 连续历史 + NO_CHANGES 幂等", "status": "done" },
-      { "id": "TGT-20261113-04", "owner": "team-lead", "title": "冒烟脚本死路径修复（find-smoke-exe.ps1）+ 补跑发版硬门禁", "status": "done" },
-      { "id": "TGT-20261113-05", "owner": "team-lead", "title": "README 界面预览（3 张干净 UI 截图入库，含内部对话的不入库）", "status": "done" }
+      { "id": "TGT-20261113-FU-01", "owner": "team-lead", "title": "根本约定与记忆库 8 处事实失真修正", "status": "done" },
+      { "id": "TGT-20261113-FU-02", "owner": "qa", "title": "独立全量门禁复验与正确率统计", "status": "in_progress", "note": "首轮报告因厂长并发写入污染快照已作废；待收口后按最终快照复验出正式报告" },
+      { "id": "TGT-20261113-FU-03", "owner": "team-lead", "title": "clean-releases 伪成功修复 + 产物清理 best-effort + 文档记忆闭环", "status": "done" },
+      { "id": "TGT-20261113-FU-04", "owner": "team-lead", "title": "qa 报告 D2/D3 归因裁决与 check-ship 误导性告警返工", "status": "done" },
+      { "id": "TGT-20261113-FU-05", "owner": "team-lead", "title": "汇总与正式汇报", "status": "pending" }
     ],
     "result": {
       "gates": {
-        "typecheck": "0 error",
-        "vitest": "236/236",
-        "smoke_mock": "MOCK_SMOKE_PASS 9.3s ok=true（打包版 v0.2.1 全链路）",
-        "smoke_failover": "MOCK_SMOKE_PASS 2.6s mockfail→mockok quota_exhausted ×2",
-        "smoke_real": "SMOKE_TEST_PASS 13.5s ok=true（真实上游 DeepSeek quota→Kimi 429→Agnes 500/429→Kimi 200，故障转移实测）",
-        "publish": "132→136 文件 EXIT=0；幂等复跑 NO_CHANGES；远端 parents=1",
-        "deterministic_checks": "13/13（100%，含单测 236 条则 249/249）"
+        "typecheck": "由 qa 独立复验，结论待其正式报告（厂长不代填）",
+        "vitest": "由 qa 独立复验，结论待其正式报告",
+        "check_ship": "厂长本地实跑：错误 0 / 警告 0 / EXITCODE=0 /「可以打包」；产物 zip 263.6MB、exe 177.8MB、tag v0.2.1 对齐",
+        "clean_releases": "实跑 SYNTAX_OK / EXITCODE=0 / HAS_MARKER=True / HAS_PS_ERROR=False；3 目录按安全约定跳过、释放 0MB、未强删",
+        "deterministic_checks": "由 qa 独立复验，正确率结论待其正式报告"
       },
-      "commits": ["aff12d4", "51152aa", "95bb51a"],
-      "remote_head": "9defea2855（chore(release): ClaudeWorkbench v0.2.1 快照同步）",
-      "coverage_gap": "无：离线 mock / 故障转移演练 / 真实上游三条冒烟通道全部实跑通过",
-      "notes": "根因同源：ship 通道升级到 release-v<version>/ 后，冒烟脚本与发布脚本未跟着改"
+      "coverage_gap": "测试覆盖率门禁（≥80%）本项目尚无法判定：未装 coverage provider。涉及依赖与 CI 变更，属人工决策，本轮不擅自扩充",
+      "notes": "流程事故：派出独立复验后厂长仍并行写入，污染 qa 快照窗口致 C1 FAIL（不含单测口径一度 96.43% < 98%）。qa 判定正确不得改判；纠正为写入收口 → commit → 干净快照 → 再复验。"
     }
   },
   "next_iteration_candidates": [
-    { "id": "ITER-v0.3.0", "theme": "派活式智能体：M2 执行器升级为完整 claude CLI agent 循环（权限 Broker + resume）" },
+    { "id": "ITER-v0.3.0", "theme": "派活式智能体：M2 执行器升级为完整 claude CLI agent 循环（权限 Broker + resume）", "gate": "战略方向，一级人工审批后方可开工" },
     { "id": "ITER-v0.4.0", "theme": "技能/插件平台（skills 包管理 + 面板插件）" }
   ],
   "quality_baseline": {
@@ -57,6 +55,7 @@
   "history": [
     { "id": "ITER-20261024-v0.1.2", "result": "closed", "commits": ["95f7da5", "c52ee62"] },
     { "id": "ITER-20261025-v0.2.0", "result": "closed", "commits": ["05e6824", "77304aa", "3aa3d91"] },
-    { "id": "ITER-20261104-v0.2.1", "result": "closed", "commits": ["3cad69d", "ebd0a36", "319621c", "5d65e2b"], "accuracy": "99.29%（279/281）" }
+    { "id": "ITER-20261104-v0.2.1", "result": "closed", "commits": ["3cad69d", "ebd0a36", "319621c", "5d65e2b"], "accuracy": "99.29%（279/281）" },
+    { "id": "ITER-20261113-maintenance", "result": "closed", "commits": ["aff12d4", "51152aa", "95bb51a", "2395542"], "deterministic_checks": "13/13（100%，含单测 249/249）" }
   ]
 }

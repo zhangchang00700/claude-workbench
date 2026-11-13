@@ -132,3 +132,17 @@ console.log(
   `\n实际释放约 ${Math.round(freed)} MB` +
     (failed > 0 ? `；${failed} 个未删（回收站不可用时需加 --permanent）` : '')
 )
+
+// 发版链路 ship.mjs 用 stdio:inherit 调用本脚本，日志必须能一眼判定清理是否真的生效。
+// 这里刻意不 process.exit(1)：构建已成功，「旧目录没删掉」不该反过来把发版判为失败（伪阻断）。
+// 改用结构化标记，让人工/CI 都能判定，同时给出可执行的下一步。
+// 用 stdout 而非 console.warn：PowerShell 5.1 会把原生命令的 stderr 包装成红色
+// NativeCommandError 异常块，在交互式终端里看着像脚本崩溃（其实只是「没删掉」）。
+if (failed > 0) {
+  console.log(
+    `CLEAN_INCOMPLETE: ${failed} 个旧产物目录未删除，自动瘦身未生效（实际释放 ${Math.round(freed)} MB）。` +
+      '这不影响本次构建产物；请在交互式 PowerShell 重跑删除，或由人工确认后加 --permanent（永久删除）。'
+  )
+} else {
+  console.log('CLEAN_OK: 旧产物目录已全部处理')
+}
